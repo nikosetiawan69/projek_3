@@ -91,12 +91,14 @@ class _SideMenuState extends State<SideMenu> {
                     const SizedBox(height: 2), // Jarak antar teks
                     // Deskripsi pengguna
                     Text(
-                      "Software Engineer",
-                      style: TextStyle(
-                          color: Colors.white.withOpacity(0.7), // Teks dengan opasitas
-                          fontSize: 15,
-                          fontFamily: "Inter"),
-                    ),
+  "Software Engineer",
+  style: TextStyle(
+    color: Colors.white.withOpacity(0.7), // ✅ benar
+    fontSize: 15,
+    fontFamily: "Inter",
+  ),
+),
+
                   ],
                 ),
               ],
