@@ -3,11 +3,12 @@ import 'package:flutter_samples/ui/navigation/home_tab_view.dart';
 import 'package:flutter_samples/ui/screen/contact.dart';
 import 'package:flutter_samples/ui/screen/general_settings.dart';
 import 'package:flutter_samples/ui/screen/login.dart';
-import 'package:flutter_samples/ui/screen/payment.dart';
 import 'package:flutter_samples/ui/screen/security.dart';
 import 'package:flutter_samples/ui/theme.dart';
 // import halaman utama
 import 'package:flutter_samples/ui/getstart.dart';
+
+
 class AcountPage extends StatelessWidget {
   const AcountPage({super.key});
 
@@ -61,23 +62,38 @@ class AcountPage extends StatelessWidget {
                 Expanded(
                   child: ListView(
                     children: [
-                      _buildTile("General", Icons.settings, tileColor, () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const GeneralSettingsPage()),
-  );
-}),
+                      _buildTile("AboutApp", Icons.settings, tileColor, () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const GeneralSettingsPage(),
+                          ),
+                        );
+                      }),
 
                       _buildTile("Security", Icons.lock, tileColor, () {
-  Navigator.push(context,
-    MaterialPageRoute(builder: (context) => const SecuritySettingsPage()));
-}),
-                     _buildTile("Payment", Icons.payment, tileColor, () {
-  Navigator.push(context, MaterialPageRoute(builder: (context) => const PaymentSettingsPage()));
-}),
-_buildTile("Contact Us", Icons.contact_mail, tileColor, () {
-  Navigator.push(context, MaterialPageRoute(builder: (context) => const ContactUsPage()));
-}),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ChangePasswordPage(),
+                          ),
+                        );
+                      }),
+
+                      
+                      _buildTile(
+                        "Contact Us",
+                        Icons.contact_mail,
+                        tileColor,
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ContactUsPage(),
+                            ),
+                          );
+                        },
+                      ),
                       _buildTile("Log Out", Icons.logout, tileColor, () {
                         Navigator.pushAndRemoveUntil(
                           context,

@@ -1,86 +1,126 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_samples/ui/theme.dart';
 
-class GeneralSettingsPage extends StatefulWidget {
+class GeneralSettingsPage extends StatelessWidget {
   const GeneralSettingsPage({super.key});
-
-  @override
-  State<GeneralSettingsPage> createState() => _GeneralSettingsPageState();
-}
-
-class _GeneralSettingsPageState extends State<GeneralSettingsPage> {
-  bool isDarkMode = false;
-  bool notificationsEnabled = true;
-  String selectedLanguage = "English";
-
-  static const Color tileColor = Color(0xFFAECFFF);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: RiveAppTheme.background2,
+      // Warna latar belakang lembut
+      backgroundColor: const Color(0xFFF5FAFF),
+
+      // AppBar dengan warna biru
       appBar: AppBar(
         title: const Text(
-          "General Settings",
+          "About This App",
           style: TextStyle(
             fontFamily: "Poppins",
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
-        backgroundColor: tileColor,
+        backgroundColor: const Color(0xFF4A90E2),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: Padding(
+
+      // Isi halaman
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildSwitchTile(
-              title: "Dark Mode",
-              icon: Icons.dark_mode,
-              value: isDarkMode,
-              onChanged: (value) {
-                setState(() {
-                  isDarkMode = value;
-                });
-              },
+        children: [
+          // Judul aplikasi + ikon
+          Column(
+            children: const [
+              Icon(Icons.menu_book_rounded,
+                  color: Color(0xFF4A90E2), size: 70),
+              SizedBox(height: 10),
+              Text(
+                "Course Learning App",
+                style: TextStyle(
+                  fontFamily: "Poppins",
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Deskripsi aplikasi
+          Card(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 4,
+            child: const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text(
+                "Aplikasi ini membantu pelajar belajar kursus "
+                "dengan mudah, praktis, dan interaktif. "
+                "Belajar jadi lebih menyenangkan dengan fitur modern.",
+                style: TextStyle(
+                  fontFamily: "Inter",
+                  fontSize: 15,
+                  height: 1.5,
+                  color: Colors.black87,
+                ),
+              ),
             ),
-            _buildSwitchTile(
-              title: "Enable Notifications",
-              icon: Icons.notifications,
-              value: notificationsEnabled,
-              onChanged: (value) {
-                setState(() {
-                  notificationsEnabled = value;
-                });
-              },
+          ),
+          const SizedBox(height: 20),
+
+          // Judul fitur
+          const Text(
+            "Key Features",
+            style: TextStyle(
+              fontFamily: "Poppins",
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
-            _buildNavigationTile(
-              title: "Language",
-              icon: Icons.language,
-              subtitle: selectedLanguage,
-              onTap: () {
-                _showLanguageDialog(context);
-              },
+          ),
+          const SizedBox(height: 12),
+
+          // Daftar fitur aplikasi
+          _buildFeatureTile(
+            icon: Icons.school,
+            title: "Materi Kursus Lengkap",
+            subtitle: "Konten belajar terstruktur dari berbagai topik.",
+          ),
+          _buildFeatureTile(
+            icon: Icons.play_circle_fill,
+            title: "Video Pembelajaran",
+            subtitle: "Nikmati pembelajaran interaktif melalui video.",
+          ),
+          const SizedBox(height: 20),
+
+          // Info versi aplikasi
+          const Center(
+            child: Text(
+              "Version 1.0.0",
+              style: TextStyle(
+                fontFamily: "Inter",
+                fontSize: 13,
+                fontStyle: FontStyle.italic,
+                color: Colors.black54,
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildSwitchTile({
-    required String title,
+  // Widget untuk item fitur (tile)
+  Widget _buildFeatureTile({
     required IconData icon,
-    required bool value,
-    required ValueChanged<bool> onChanged,
+    required String title,
+    required String subtitle,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
-        color: tileColor,
-        borderRadius: BorderRadius.circular(15),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
             color: Colors.black12,
@@ -89,112 +129,28 @@ class _GeneralSettingsPageState extends State<GeneralSettingsPage> {
           ),
         ],
       ),
-      child: SwitchListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        secondary: Icon(icon, color: Colors.black),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: const Color(0xFF4A90E2),
+          child: Icon(icon, color: Colors.white),
+        ),
         title: Text(
           title,
           style: const TextStyle(
             fontFamily: "Inter",
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
           ),
         ),
-        value: value,
-        onChanged: onChanged,
-      ),
-    );
-  }
-
-  Widget _buildNavigationTile({
-    required String title,
-    required IconData icon,
-    String? subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 15),
-        decoration: BoxDecoration(
-          color: tileColor,
-          borderRadius: BorderRadius.circular(15),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.black),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontFamily: "Inter",
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontFamily: "Inter",
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios, size: 20, color: Colors.black54),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showLanguageDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Select Language"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildLanguageOption("English"),
-              _buildLanguageOption("Bahasa Indonesia"),
-              _buildLanguageOption("Spanish"),
-            ],
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(
+            fontFamily: "Inter",
+            fontSize: 14,
+            color: Colors.black54,
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLanguageOption(String language) {
-    return RadioListTile<String>(
-      title: Text(language),
-      value: language,
-      groupValue: selectedLanguage,
-      onChanged: (value) {
-        setState(() {
-          selectedLanguage = value!;
-        });
-        Navigator.pop(context);
-      },
+        ),
+      ),
     );
   }
 }
