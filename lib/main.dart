@@ -2,10 +2,15 @@
 import 'package:flutter/material.dart';
 // Mengimpor file getstart.dart yang berisi widget GetStart
 import 'package:flutter_samples/ui/getstart.dart';
-
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Fungsi main adalah titik masuk aplikasi Flutter
-void main() {
+void main() async {
+  await Supabase.initialize(
+    anonKey:
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV3cWFsYnRmY3BudGJwdWxsdWtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxNjg2OTgsImV4cCI6MjA3MDc0NDY5OH0.Pg1SYw-2MJTFAXpPu8UNqDHnw47LwaDHmutZCvFwEAU",
+    url: "https://ewqalbtfcpntbpullukp.supabase.co",
+  );
   // Menjalankan aplikasi dengan widget MyApp sebagai root
   runApp(const MyApp());
 }
@@ -24,9 +29,7 @@ class MyApp extends StatelessWidget {
       // Judul aplikasi yang digunakan oleh sistem operasi
       title: 'Flutter Project 2',
       // Mendefinisikan tema aplikasi dengan warna utama biru
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       // Menetapkan GetStart sebagai halaman awal aplikasi
       home: GetStart(),
     );

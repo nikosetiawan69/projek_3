@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_samples/supabase/materi.dart';
+import 'package:flutter_samples/supabase/models/materi_model.dart';
 import 'package:flutter_samples/ui/models/courses.dart';
 import 'package:flutter_samples/ui/theme.dart';
 
 class CourseDetailPage extends StatelessWidget {
-  const CourseDetailPage({Key? key, required this.course}) : super(key: key);
+  const CourseDetailPage({super.key, required this.course});
 
-  final CourseModel course;
+  final MateriModel course;
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +47,8 @@ class CourseDetailPage extends StatelessWidget {
                       ),
                       clipBehavior: Clip.antiAlias,
                       elevation: 10,
-                      child: Image.asset(
-                        course.image,
+                      child: Image.network(
+                        course.imageUrl,
                         height: 250,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -54,7 +56,7 @@ class CourseDetailPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      course.link,
+                      course.videoUrl,
                       style: const TextStyle(
                         fontSize: 16,
                         fontFamily: "Inter",
@@ -62,18 +64,17 @@ class CourseDetailPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    if (course.subtitle != null)
-                      Text(
-                        course.subtitle!,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontFamily: "Inter",
-                          color: Colors.black54,
-                        ),
+                    Text(
+                      course.subTitle,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: "Inter",
+                        color: Colors.black54,
                       ),
+                    ),
                     const SizedBox(height: 8),
                     Text(
-                      course.caption,
+                      "hello world",
                       style: const TextStyle(
                         fontSize: 14,
                         fontFamily: "Inter",
@@ -88,15 +89,12 @@ class CourseDetailPage extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      color: course.color,
+                      color: Colors.blue,
                       elevation: 5,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(
-                          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
-                          "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. "
-                          "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. "
-                          "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum....",
+                          course.content,
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.white,
@@ -150,12 +148,56 @@ class CourseDetailPage extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Delete button pressed"),
-                                ),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder:
+                                    (context) => AlertDialog(
+                                      title: const Text("Hapus Materi"),
+                                      content: const Text(
+                                        "Apakah kamu yakin ingin menghapus materi ini?",
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () =>
+                                                  Navigator.pop(context, false),
+                                          child: const Text('Batal'),
+                                        ),
+                                        TextButton(
+                                          onPressed:
+                                              () =>
+                                                  Navigator.pop(context, true),
+                                          child: const Text(
+                                            'Hapus',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                               );
+                              if (confirm != true) return;
+
+                              try {
+                                await Materi().deleteMateri(course);
+
+                                if (!context.mounted) return;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Materi berhasil di hapus'),
+                                  ),
+                                );
+
+                                Navigator.pop(context);
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Materi gagal di hapus: $e'),
+                                  ),
+                                );
+                              }
                             },
                             child: const Text(
                               "Delete",

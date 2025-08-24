@@ -1,6 +1,7 @@
 // Mengimpor package material dari Flutter untuk widget Material Design
 import 'package:flutter/material.dart';
-import 'package:flutter_samples/ui/home.dart';
+
+import '../../supabase/service/auth_service.dart';
 // Mengimpor widget RiveAppHome dari file home.dart
 
 // Widget utama untuk halaman awal aplikasi (Get Started)
@@ -13,6 +14,39 @@ class SignUpPage extends StatefulWidget {
 
 // State untuk SignUpPage, mengelola UI halaman awal
 class _SignUpPageState extends State<SignUpPage> {
+  final authService = AuthService();
+
+  bool obscurePassword = true;
+  bool confirmobscurePassword = true;
+
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmpasswordController = TextEditingController();
+
+  void signUp() async {
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    final confirmPassword = _confirmpasswordController.text;
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Password don't match")));
+      return;
+    }
+
+    try {
+      await authService.signUpWithEmailPassword(email, password);
+      Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +71,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     .center, // Menyusun anak secara vertikal di tengah
             children: [
               // Logo aplikasi
-              Container(
+              SizedBox(
                 width: 150,
                 height: 150,
                 child: Image.asset(
@@ -77,7 +111,17 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    TextField(
+                    TextFormField(
+                      controller: _emailController,
+                      validator:
+                          (value) =>
+                              value == null || value.isEmpty
+                                  ? 'Email tidak boleh kosong'
+                                  : !RegExp(
+                                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                  ).hasMatch(value)
+                                  ? 'Format email tidak valid'
+                                  : null,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: const Color(0xFFD3D3D3),
@@ -95,11 +139,73 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     const SizedBox(height: 10),
                     TextField(
-                      obscureText: true,
+                      controller: _passwordController,
+                      obscureText: obscurePassword,
                       decoration: InputDecoration(
+                        suffixIcon: Padding(
+                          padding: EdgeInsets.only(right: 20),
+                          child: GestureDetector(
+                            behavior:
+                                HitTestBehavior
+                                    .translucent, // area klik sesuai padding
+                            onTap: () {
+                              setState(
+                                () => obscurePassword = !obscurePassword,
+                              );
+                            },
+                            child: Icon(
+                              obscurePassword
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              color: Colors.black,
+                              size: 22, // ukuran ikon
+                            ),
+                          ),
+                        ),
                         filled: true,
                         fillColor: const Color(0xFFD3D3D3),
                         hintText: 'Password',
+                        hintStyle: const TextStyle(color: Colors.black54),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 23,
+                          horizontal: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _confirmpasswordController,
+                      obscureText: confirmobscurePassword,
+                      decoration: InputDecoration(
+                        suffixIcon: Padding(
+                          padding: EdgeInsets.only(right: 20),
+                          child: GestureDetector(
+                            behavior:
+                                HitTestBehavior
+                                    .translucent, // area klik sesuai padding
+                            onTap: () {
+                              setState(
+                                () =>
+                                    confirmobscurePassword =
+                                        !confirmobscurePassword,
+                              );
+                            },
+                            child: Icon(
+                              confirmobscurePassword
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              color: Colors.black,
+                              size: 22, // ukuran ikon
+                            ),
+                          ),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFD3D3D3),
+                        hintText: 'Confirm Password',
                         hintStyle: const TextStyle(color: Colors.black54),
                         contentPadding: const EdgeInsets.symmetric(
                           vertical: 23,
@@ -117,14 +223,13 @@ class _SignUpPageState extends State<SignUpPage> {
 
               const SizedBox(height: 20),
               // Tombol untuk memulai aplikasi
-              GestureDetector(
-                onTap: () {
-                  // Navigasi ke halaman RiveAppHome saat tombol diklik
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => RiveAppHome()),
-                  );
-                },
+              ElevatedButton(
+                onPressed: signUp,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: EdgeInsets.zero,
+                ),
                 child: Container(
                   // Dekorasi tombol dengan gradien
                   decoration: BoxDecoration(
@@ -143,7 +248,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     vertical: 15,
                   ), // Padding tombol
                   child: const Text(
-                    'Login',
+                    'Signup',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

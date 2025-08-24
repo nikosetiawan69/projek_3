@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   rive: ^0.13.20
   spring: ^2.0.2
+  supabase_flutter: ^2.9.1
+  path: ^1.9.1
+  image_picker: ^1.2.0
   
 dev_dependencies:
   flutter_test:
