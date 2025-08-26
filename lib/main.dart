@@ -1,7 +1,7 @@
 // Mengimpor package material dari Flutter untuk menggunakan widget Material Design
 import 'package:flutter/material.dart';
+import 'package:flutter_samples/supabase/service/auth_gate.dart';
 // Mengimpor file getstart.dart yang berisi widget GetStart
-import 'package:flutter_samples/ui/getstart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Fungsi main adalah titik masuk aplikasi Flutter
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
       // Mendefinisikan tema aplikasi dengan warna utama biru
       theme: ThemeData(primarySwatch: Colors.blue),
       // Menetapkan GetStart sebagai halaman awal aplikasi
-      home: GetStart(),
+      home: AuthGate(),
     );
   }
 }

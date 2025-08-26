@@ -17,7 +17,7 @@ class MateriModel {
 
   factory MateriModel.fromMap(Map<String, dynamic> map) {
     return MateriModel(
-      id: map['id'] as int?,
+      id: (map['id'] as num?)?.toInt(),
       title: map['title'] as String,
       content: map['content'] as String,
       imageUrl: map['image_url'] as String,
@@ -27,6 +27,17 @@ class MateriModel {
   }
 
   Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'content': content,
+      'image_url': imageUrl,
+      'video_url': videoUrl,
+      'subtitle': subTitle,
+    };
+  }
+
+  Map<String, dynamic> toInsertMap() {
     return {
       'title': title,
       'content': content,

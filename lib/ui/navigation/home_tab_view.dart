@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_samples/supabase/models/materi_model.dart';
 // Komponen
@@ -5,8 +7,10 @@ import 'package:flutter_samples/ui/components/vcard.dart';
 import 'package:flutter_samples/ui/components/hcard.dart';
 // Model
 import 'package:flutter_samples/ui/models/courses.dart';
+import 'package:flutter_samples/ui/screen/detailcourse.dart';
 // Tema
 import 'package:flutter_samples/ui/theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // Supabase
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -19,6 +23,7 @@ class HomeTabView extends StatefulWidget {
 
 class _HomeTabViewState extends State<HomeTabView> {
   late final Stream<List<MateriModel>> _stream;
+  List<MateriModel> _recentCourses = [];
 
   @override
   void initState() {
@@ -27,10 +32,68 @@ class _HomeTabViewState extends State<HomeTabView> {
         .from('materi')
         .stream(primaryKey: ['id'])
         .map((data) => data.map(MateriModel.fromMap).toList());
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadRecent();
+    });
   }
 
-  // Daftar untuk "Recent" → statis
-  final List<CourseModel> _courseSections = CourseModel.courseSections;
+  Future<void> _loadRecent() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final data = prefs.getStringList('recent_courses') ?? [];
+
+      final List<MateriModel> loadedCourses = [];
+
+      for (var item in data) {
+        try {
+          final decoded = jsonDecode(item);
+          if (decoded is Map<String, dynamic>) {
+            final course = MateriModel.fromMap(decoded);
+            if (course.id != null) loadedCourses.add(course);
+          }
+        } catch (e) {
+          debugPrint('Error decoding course: $e');
+        }
+      }
+      setState(() {
+        _recentCourses = loadedCourses;
+      });
+    } catch (e) {
+      debugPrint('Error loading recent courses: $e');
+    }
+  }
+
+  Future<void> _saveRecent() async {
+    try {
+      final encoded =
+          _recentCourses
+              .where((c) => c.id != null)
+              .map((c) => jsonEncode(c.toMap()))
+              .toList();
+      debugPrint('🔥 encodeList: ${encoded.length} item');
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('recent_courses', encoded);
+    } catch (e) {
+      debugPrint('Error saving recent courses: $e');
+    }
+  }
+
+  Future<void> _addToRecent(MateriModel course) async {
+    debugPrint('🎯 ADDING course.id = ${course.id}');
+    final fresh = MateriModel.fromMap(course.toMap());
+    debugPrint('🎯 BEFORE insert: ${_recentCourses.map((e) => e.id)}');
+    _recentCourses.removeWhere((c) => c.id == fresh.id);
+
+    _recentCourses.insert(0, fresh);
+    debugPrint('🎯 AFTER insert: ${_recentCourses.map((e) => e.id)}');
+
+    if (_recentCourses.length > 5) {
+      _recentCourses = _recentCourses.sublist(0, 5);
+    }
+    setState(() {});
+    await _saveRecent();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +163,24 @@ class _HomeTabViewState extends State<HomeTabView> {
                                 (course) => Padding(
                                   key: ValueKey(course.id),
                                   padding: const EdgeInsets.all(10),
-                                  child: VCard(course: course),
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      await _addToRecent(course);
+                                      await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => CourseDetailPage(
+                                                course: course,
+                                              ),
+                                        ),
+                                      );
+                                      await _loadRecent();
+                                    },
+                                    child: Container(
+                                      child: VCard(course: course),
+                                    ),
+                                  ),
                                 ),
                               )
                               .toList(),
@@ -110,7 +190,7 @@ class _HomeTabViewState extends State<HomeTabView> {
               ),
 
               // -------------------------------
-              // Bagian Recent (Statis)
+              // Bagian Recent
               // -------------------------------
               const Padding(
                 padding: EdgeInsets.only(left: 20, right: 20, bottom: 20),
@@ -120,21 +200,27 @@ class _HomeTabViewState extends State<HomeTabView> {
                 ),
               ),
 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Wrap(
-                  children: List.generate(
-                    _courseSections.length,
-                    (index) => Container(
-                      key: _courseSections[index].id,
-                      width:
-                          MediaQuery.of(context).size.width > 992
-                              ? ((MediaQuery.of(context).size.width - 20) / 2)
-                              : MediaQuery.of(context).size.width,
-                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
-                      child: HCard(section: _courseSections[index]),
-                    ),
-                  ),
+              SizedBox(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child:
+                      _recentCourses.isEmpty
+                          ? const Center(child: Text("No recent courses"))
+                          : SizedBox(
+                            height: 110,
+                            child: ListView(
+                              children:
+                                  _recentCourses
+                                      .map(
+                                        (course) => Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: HCard(recent: course),
+                                        ),
+                                      )
+                                      .toList(),
+                            ),
+                          ),
                 ),
               ),
             ],

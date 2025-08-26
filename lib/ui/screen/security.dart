@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
@@ -14,9 +15,80 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   bool showNewPassword = false;
   bool showConfirmPassword = false;
 
-  String oldPassword = "";
-  String newPassword = "";
-  String confirmPassword = "";
+  final oldPasswordController = TextEditingController();
+  final newPasswordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+
+  bool isLoading = false;
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    oldPasswordController.dispose();
+    newPasswordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _changePassword() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (newPasswordController.text != confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("New password and confirm password do not match ❌"),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await Supabase.instance.client.auth.signInWithPassword(
+        password: oldPasswordController.text,
+        email: Supabase.instance.client.auth.currentUser!.email!,
+      );
+
+      if (response.user == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Old password is incorrect")));
+        return;
+      }
+
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(password: newPasswordController.text),
+      );
+
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.green,
+          content: Text("Password update successfully ✅"),
+        ),
+      );
+
+      oldPasswordController.clear();
+      newPasswordController.clear();
+      confirmPasswordController.clear();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed: $e")));
+    } finally {
+      if (mounted)
+        setState(() {
+          isLoading = false;
+        });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,9 +133,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
                   // Old Password
                   _buildPasswordField(
+                    controller: oldPasswordController,
                     label: "Old Password",
                     obscureText: !showOldPassword,
-                    onChanged: (value) => oldPassword = value,
                     toggle: () {
                       setState(() => showOldPassword = !showOldPassword);
                     },
@@ -73,9 +145,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
                   // New Password
                   _buildPasswordField(
+                    controller: newPasswordController,
                     label: "New Password",
                     obscureText: !showNewPassword,
-                    onChanged: (value) => newPassword = value,
                     toggle: () {
                       setState(() => showNewPassword = !showNewPassword);
                     },
@@ -85,11 +157,13 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
                   // Confirm Password
                   _buildPasswordField(
+                    controller: confirmPasswordController,
                     label: "Confirm Password",
                     obscureText: !showConfirmPassword,
-                    onChanged: (value) => confirmPassword = value,
                     toggle: () {
-                      setState(() => showConfirmPassword = !showConfirmPassword);
+                      setState(
+                        () => showConfirmPassword = !showConfirmPassword,
+                      );
                     },
                     isVisible: showConfirmPassword,
                   ),
@@ -107,42 +181,23 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          if (newPassword != confirmPassword) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  "New password and confirm password do not match ❌",
-                                  style: TextStyle(fontFamily: "Poppins"),
+                      onPressed: isLoading ? null : _changePassword,
+                      child:
+                          isLoading
+                              ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                              : const Text(
+                                "Save Password",
+                                style: TextStyle(
+                                  fontFamily: "Poppins",
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: Colors.white,
                                 ),
                               ),
-                            );
-                            return;
-                          }
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              backgroundColor: Colors.green,
-                              content: Text(
-                                "Password updated successfully ✅",
-                                style: TextStyle(fontFamily: "Poppins"),
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      child: const Text(
-                        "Save Password",
-                        style: TextStyle(
-                          fontFamily: "Poppins",
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -154,29 +209,29 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
   // Custom password field widget
   Widget _buildPasswordField({
+    required TextEditingController controller,
     required String label,
     required bool obscureText,
-    required Function(String) onChanged,
     required VoidCallback toggle,
     required bool isVisible,
   }) {
     return TextFormField(
+      controller: controller,
       obscureText: obscureText,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(fontFamily: "Poppins"),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
         suffixIcon: IconButton(
           icon: Icon(
-            isVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+            isVisible
+                ? Icons.visibility_off_outlined
+                : Icons.visibility_outlined,
             color: Colors.grey,
           ),
           onPressed: toggle,
         ),
       ),
-      onChanged: onChanged,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return "$label cannot be empty";

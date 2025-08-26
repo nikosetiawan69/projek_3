@@ -5,12 +5,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:path/path.dart' as p;
 
-class Materi {
+class MateriService {
   final _client = Supabase.instance.client;
 
   Future createMateri(MateriModel newMateri) async {
     await _client.from('materi').insert({
-      ...newMateri.toMap(),
+      ...newMateri.toInsertMap(),
       'created_by': _client.auth.currentUser!.id,
     });
   }

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_samples/ui/home.dart';
 import 'package:flutter_samples/ui/theme.dart';
-import 'package:flutter_samples/supabase/materi.dart';
+import 'package:flutter_samples/supabase/service/materi_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddCoursePage extends StatefulWidget {
@@ -24,7 +24,7 @@ class _AddCoursePageState extends State<AddCoursePage> {
 
   dynamic _imageData;
   final _imagePicker = ImagePicker();
-  final _materiTable = Materi();
+  final _materiTable = MateriService();
 
   bool _isUpLoading = false;
 

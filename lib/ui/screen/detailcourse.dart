@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_samples/supabase/materi.dart';
+import 'package:flutter_samples/supabase/service/materi_service.dart';
 import 'package:flutter_samples/supabase/models/materi_model.dart';
 import 'package:flutter_samples/ui/models/courses.dart';
 import 'package:flutter_samples/ui/theme.dart';
@@ -179,7 +179,7 @@ class CourseDetailPage extends StatelessWidget {
                               if (confirm != true) return;
 
                               try {
-                                await Materi().deleteMateri(course);
+                                await MateriService().deleteMateri(course);
 
                                 if (!context.mounted) return;
 

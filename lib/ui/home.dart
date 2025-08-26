@@ -26,9 +26,7 @@ import 'package:flutter_samples/ui/screen/search.dart';
 Widget commonTabScene(Widget content) {
   return Container(
     // Menggunakan warna latar belakang dari tema aplikasi
-    decoration: BoxDecoration(
-      color: RiveAppTheme.background,
-    ),
+    decoration: BoxDecoration(color: RiveAppTheme.background),
     // Menempatkan konten di tengah
     alignment: Alignment.center,
     child: content,
@@ -164,10 +162,15 @@ class _RiveAppHomeState extends State<RiveAppHome>
               builder: (BuildContext context, Widget? child) {
                 return Transform(
                   alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    ..setEntry(3, 2, 0.001) // Menambahkan perspektif 3D
-                    ..rotateY(((1 - _sidebarAnim.value) * -30) * math.pi / 180) // Rotasi Y
-                    ..translate((1 - _sidebarAnim.value) * -300), // Translasi horizontal
+                  transform:
+                      Matrix4.identity()
+                        ..setEntry(3, 2, 0.001) // Menambahkan perspektif 3D
+                        ..rotateY(
+                          ((1 - _sidebarAnim.value) * -30) * math.pi / 180,
+                        ) // Rotasi Y
+                        ..translate(
+                          (1 - _sidebarAnim.value) * -300,
+                        ), // Translasi horizontal
                   child: child,
                 );
               },
@@ -183,14 +186,24 @@ class _RiveAppHomeState extends State<RiveAppHome>
               animation: _showOnBoarding ? _onBoardingAnim : _sidebarAnim,
               builder: (context, child) {
                 return Transform.scale(
-                  scale: 1 - (_showOnBoarding ? _onBoardingAnim.value * 0.08 : _sidebarAnim.value * 0.1),
+                  scale:
+                      1 -
+                      (_showOnBoarding
+                          ? _onBoardingAnim.value * 0.08
+                          : _sidebarAnim.value * 0.1),
                   child: Transform.translate(
-                    offset: Offset(_sidebarAnim.value * 265, 0), // Geser konten saat sidebar terbuka
+                    offset: Offset(
+                      _sidebarAnim.value * 265,
+                      0,
+                    ), // Geser konten saat sidebar terbuka
                     child: Transform(
                       alignment: Alignment.center,
-                      transform: Matrix4.identity()
-                        ..setEntry(3, 2, 0.001) // Perspektif 3D
-                        ..rotateY((_sidebarAnim.value * 30) * math.pi / 180), // Rotasi Y
+                      transform:
+                          Matrix4.identity()
+                            ..setEntry(3, 2, 0.001) // Perspektif 3D
+                            ..rotateY(
+                              (_sidebarAnim.value * 30) * math.pi / 180,
+                            ), // Rotasi Y
                       child: child,
                     ),
                   ),
@@ -205,7 +218,9 @@ class _RiveAppHomeState extends State<RiveAppHome>
             builder: (context, child) {
               return Positioned(
                 top: MediaQuery.of(context).padding.top + 20,
-                right: (_sidebarAnim.value * -100) + 16, // Bergerak saat sidebar terbuka
+                right:
+                    (_sidebarAnim.value * -100) +
+                    16, // Bergerak saat sidebar terbuka
                 child: child!,
               );
             },
@@ -228,7 +243,9 @@ class _RiveAppHomeState extends State<RiveAppHome>
                 return SafeArea(
                   child: Row(
                     children: [
-                      SizedBox(width: _sidebarAnim.value * 216), // Spacer untuk posisi tombol
+                      SizedBox(
+                        width: _sidebarAnim.value * 216,
+                      ), // Spacer untuk posisi tombol
                       child!,
                     ],
                   ),
@@ -243,17 +260,22 @@ class _RiveAppHomeState extends State<RiveAppHome>
                     height: 44,
                     margin: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(44 / 2), // Bentuk lingkaran
+                      borderRadius: BorderRadius.circular(
+                        44 / 2,
+                      ), // Bentuk lingkaran
                       boxShadow: [
                         BoxShadow(
-                          color: RiveAppTheme.shadow.withOpacity(0.2), // Bayangan tombol
+                          color: RiveAppTheme.shadow.withOpacity(
+                            0.2,
+                          ), // Bayangan tombol
                           blurRadius: 5,
                           offset: const Offset(0, 5),
                         ),
                       ],
                     ),
                     child: RiveAnimation.asset(
-                      app_assets.menuButtonRiv, // File animasi Rive untuk tombol
+                      app_assets
+                          .menuButtonRiv, // File animasi Rive untuk tombol
                       stateMachines: const ["State Machine"],
                       animations: const ["open", "close"],
                       onInit: _onMenuIconInit, // Inisialisasi animasi Rive
@@ -318,9 +340,14 @@ class _RiveAppHomeState extends State<RiveAppHome>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          RiveAppTheme.background.withOpacity(0), // Transparan di atas
                           RiveAppTheme.background.withOpacity(
-                            1 - (!_showOnBoarding ? _sidebarAnim.value : _onBoardingAnim.value),
+                            0,
+                          ), // Transparan di atas
+                          RiveAppTheme.background.withOpacity(
+                            1 -
+                                (!_showOnBoarding
+                                    ? _sidebarAnim.value
+                                    : _onBoardingAnim.value),
                           ), // Opasitas berubah berdasarkan animasi
                         ],
                         begin: Alignment.topCenter,
@@ -342,7 +369,9 @@ class _RiveAppHomeState extends State<RiveAppHome>
             return Transform.translate(
               offset: Offset(
                 0,
-                !_showOnBoarding ? _sidebarAnim.value * 300 : _onBoardingAnim.value * 200,
+                !_showOnBoarding
+                    ? _sidebarAnim.value * 300
+                    : _onBoardingAnim.value * 200,
               ), // Geser tab bar saat sidebar atau onboarding aktif
               child: child,
             );
@@ -353,7 +382,8 @@ class _RiveAppHomeState extends State<RiveAppHome>
               CustomTabBar(
                 onTabChange: (tabIndex) {
                   setState(() {
-                    _tabBody = _screens[tabIndex]; // Mengganti konten tab saat tab berubah
+                    _tabBody =
+                        _screens[tabIndex]; // Mengganti konten tab saat tab berubah
                   });
                 },
               ),
