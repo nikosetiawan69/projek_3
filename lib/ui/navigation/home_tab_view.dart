@@ -71,7 +71,6 @@ class _HomeTabViewState extends State<HomeTabView> {
               .where((c) => c.id != null)
               .map((c) => jsonEncode(c.toMap()))
               .toList();
-      debugPrint('🔥 encodeList: ${encoded.length} item');
       final prefs = await SharedPreferences.getInstance();
       await prefs.setStringList('recent_courses', encoded);
     } catch (e) {
@@ -80,13 +79,10 @@ class _HomeTabViewState extends State<HomeTabView> {
   }
 
   Future<void> _addToRecent(MateriModel course) async {
-    debugPrint('🎯 ADDING course.id = ${course.id}');
     final fresh = MateriModel.fromMap(course.toMap());
-    debugPrint('🎯 BEFORE insert: ${_recentCourses.map((e) => e.id)}');
     _recentCourses.removeWhere((c) => c.id == fresh.id);
 
     _recentCourses.insert(0, fresh);
-    debugPrint('🎯 AFTER insert: ${_recentCourses.map((e) => e.id)}');
 
     if (_recentCourses.length > 5) {
       _recentCourses = _recentCourses.sublist(0, 5);
@@ -200,27 +196,21 @@ class _HomeTabViewState extends State<HomeTabView> {
                 ),
               ),
 
-              SizedBox(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child:
-                      _recentCourses.isEmpty
-                          ? const Center(child: Text("No recent courses"))
-                          : SizedBox(
-                            height: 110,
-                            child: ListView(
-                              children:
-                                  _recentCourses
-                                      .map(
-                                        (course) => Padding(
-                                          padding: const EdgeInsets.all(10),
-                                          child: HCard(recent: course),
-                                        ),
-                                      )
-                                      .toList(),
-                            ),
-                          ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Wrap(
+                  children: List.generate(
+                    _recentCourses.length,
+                    (index) => Container(
+                      key: ValueKey(_recentCourses[index].id),
+                      width:
+                          MediaQuery.of(context).size.width > 992
+                              ? ((MediaQuery.of(context).size.width - 20) / 2)
+                              : MediaQuery.of(context).size.width,
+                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
+                      child: HCard(recent: _recentCourses[index]),
+                    ),
+                  ),
                 ),
               ),
             ],

@@ -84,8 +84,6 @@ class _HCardState extends State<HCard> {
                 padding: EdgeInsets.all(20),
                 child: VerticalDivider(thickness: 0.8, width: 0),
               ),
-              // Gambar seksi kursus
-              Image.network(widget.recent.imageUrl), // Gambar dari CourseModel
             ],
           ),
         ),

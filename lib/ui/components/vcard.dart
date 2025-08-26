@@ -1,10 +1,6 @@
 // Mengimpor package material dari Flutter untuk widget Material Design
 import 'package:flutter/material.dart';
 import 'package:flutter_samples/supabase/models/materi_model.dart';
-// Mengimpor model data untuk kursus
-import 'package:flutter_samples/ui/models/courses.dart';
-import 'package:flutter_samples/ui/screen/detailcourse.dart';
-import 'package:flutter_samples/ui/assets.dart' as app_assets;
 
 // Widget untuk kartu kursus vertikal
 class VCard extends StatefulWidget {
@@ -105,12 +101,6 @@ class _VCardState extends State<VCard> {
                 ),
                 const Spacer(), // Mengisi ruang kosong di bawah
               ],
-            ),
-            // Gambar kursus di posisi kanan atas
-            Positioned(
-              right: -10,
-              top: -10,
-              child: Image.asset(app_assets.topic_2), // Gambar dari CourseModel
             ),
           ],
         ),
