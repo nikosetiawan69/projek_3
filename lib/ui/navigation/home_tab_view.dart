@@ -33,6 +33,18 @@ class _HomeTabViewState extends State<HomeTabView> {
         .stream(primaryKey: ['id'])
         .map((data) => data.map(MateriModel.fromMap).toList());
 
+    _stream.listen((currentCourses) {
+      final validIds = currentCourses.map((e) => e.id).toSet();
+      final filtered =
+          _recentCourses.where((c) => validIds.contains(c.id)).toList();
+      if (filtered.length != _recentCourses.length) {
+        setState(() {
+          _recentCourses = filtered;
+        });
+        _saveRecent();
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _loadRecent();
     });
@@ -56,9 +68,24 @@ class _HomeTabViewState extends State<HomeTabView> {
           debugPrint('Error decoding course: $e');
         }
       }
+
+      final supaClient = Supabase.instance.client;
+      final idMateri = await supaClient.from('materi').select('id');
+      final validId = idMateri.map((e) => e['id'] as int).toSet();
+
+      final filteredCourses =
+          loadedCourses.where((c) => validId.contains(c.id)).toList();
+
       setState(() {
-        _recentCourses = loadedCourses;
+        _recentCourses = filteredCourses;
       });
+
+      final encoded =
+          filteredCourses
+              .where((c) => c.id != null)
+              .map((c) => jsonEncode(c.toMap()))
+              .toList();
+      await prefs.setStringList('recent_courses', encoded);
     } catch (e) {
       debugPrint('Error loading recent courses: $e');
     }
@@ -103,7 +130,7 @@ class _HomeTabViewState extends State<HomeTabView> {
         ),
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 60,
+            top: 60,
             bottom: MediaQuery.of(context).padding.bottom,
           ),
           child: Column(
