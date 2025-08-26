@@ -1,56 +1,81 @@
-// Mengimpor package cupertino untuk widget gaya iOS (CupertinoButton)
 import 'package:flutter/cupertino.dart';
-// Mengimpor package material dari Flutter untuk widget Material Design
 import 'package:flutter/material.dart';
-// Mengimpor package Rive untuk animasi interaktif, dengan pengecualian LinearGradient
 import 'package:rive/rive.dart' hide LinearGradient;
-// Mengimpor model data untuk item tab
+// Import Rive untuk animasi vektor (ikon tab animasi)
+
 import 'package:flutter_samples/ui/models/tab_item.dart';
-// Mengimpor definisi tema aplikasi
+// Model TabItem yang menyimpan data tiap tab (artboard, state machine, dll)
+
 import 'package:flutter_samples/ui/theme.dart';
-// Mengimpor aset aplikasi, termasuk file Rive
+// Tema khusus aplikasi (misalnya warna)
+
 import 'package:flutter_samples/ui/assets.dart' as app_assets;
+// Akses ke file assets (misalnya .riv untuk ikon animasi)
 
-// Widget untuk tab bar kustom dengan animasi Rive
+// Widget utama custom bottom tab bar
 class CustomTabBar extends StatefulWidget {
-  const CustomTabBar({Key? key, required this.onTabChange}) : super(key: key);
+  const CustomTabBar({
+    Key? key,
+    required this.onTabChange, // Callback ketika tab diganti
+    this.currentIndex = 0, // Indeks tab yang aktif saat pertama kali
+  }) : super(key: key);
 
-  // Callback untuk menangani perubahan tab
-  final Function(int tabIndex) onTabChange;
+  final Function(int tabIndex)
+  onTabChange; // Event untuk memberi tahu parent tab mana yg dipilih
+  final int currentIndex; // Menyimpan tab yang sedang aktif (default 0)
 
   @override
   State<CustomTabBar> createState() => _CustomTabBarState();
 }
 
-// State untuk CustomTabBar, mengelola status tab dan animasi
 class _CustomTabBarState extends State<CustomTabBar> {
-  // Daftar item tab dari model TabItem
   final List<TabItem> _icons = TabItem.tabItemsList;
-  // Indeks tab yang sedang dipilih
-  int _selectedTab = 0;
+  // Daftar tab dari model TabItem (isi: ikon Rive, artboard, stateMachine, dll)
 
-  // Inisialisasi animasi Rive untuk ikon tab
-  void _onRiveIconInit(Artboard artboard, index) {
-    // Mengambil state machine dari artboard berdasarkan nama di TabItem
+  late int _selectedTab;
+  // Menyimpan index tab yang aktif saat ini
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTab = widget.currentIndex;
+    // Saat widget pertama kali dibuat, set tab aktif sesuai currentIndex
+  }
+
+  @override
+  void didUpdateWidget(covariant CustomTabBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Fungsi ini dipanggil ketika parent me-render ulang CustomTabBar
+    // Misalnya parent ganti currentIndex, maka tab ikut update
+    if (widget.currentIndex != _selectedTab) {
+      setState(() {
+        _selectedTab = widget.currentIndex;
+      });
+    }
+  }
+
+  // Fungsi untuk inisialisasi animasi Rive pada tiap ikon
+  void _onRiveIconInit(Artboard artboard, int index) {
     final controller = StateMachineController.fromArtboard(
-        artboard, _icons[index].stateMachine);
+      artboard,
+      _icons[index].stateMachine,
+    );
     artboard.addController(controller!);
-    // Menyimpan input boolean 'active' dari state machine ke model TabItem
+
+    // Cari input boolean "active" pada stateMachine untuk kontrol animasi
     _icons[index].status = controller.findInput<bool>("active") as SMIBool;
   }
 
-  // Fungsi untuk menangani klik pada tab
+  // Fungsi yang dipanggil ketika tab ditekan
   void onTabPress(int index) {
-    if (_selectedTab != index) { // Hanya jalankan jika tab berbeda dipilih
+    if (_selectedTab != index) {
       setState(() {
-        _selectedTab = index; // Memperbarui tab yang dipilih
+        _selectedTab = index; // Ubah tab aktif
       });
-      widget.onTabChange(index); // Memanggil callback untuk mengganti konten
-      // Mengaktifkan animasi Rive untuk tab yang dipilih
-      _icons[index].status!.change(true);
-      // Menonaktifkan animasi setelah 1 detik
+      widget.onTabChange(index); // Kirim event ke parent
+      _icons[index].status!.change(true); // Aktifkan animasi Rive
       Future.delayed(const Duration(seconds: 1), () {
-        _icons[index].status!.change(false);
+        _icons[index].status!.change(false); // Matikan animasi setelah 1 detik
       });
     }
   }
@@ -59,82 +84,78 @@ class _CustomTabBarState extends State<CustomTabBar> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        // Margin untuk jarak dari tepi layar
         margin: const EdgeInsets.fromLTRB(24, 0, 24, 8),
         padding: const EdgeInsets.all(1),
-        // Membatasi lebar maksimum tab bar
         constraints: const BoxConstraints(maxWidth: 768),
-        // Dekorasi luar dengan gradien transparan
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(colors: [
-            Colors.white.withOpacity(0.5),
-            Colors.white.withOpacity(0)
-          ]),
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.5),
+              Colors.white.withOpacity(0),
+            ],
+          ),
         ),
         child: Container(
-          // Memotong konten di luar batas border
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: RiveAppTheme.background2.withOpacity(0.8), // Latar belakang biru tua
+            color: RiveAppTheme.background2.withOpacity(0.8),
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: RiveAppTheme.background2.withOpacity(0.3), // Bayangan
+                color: RiveAppTheme.background2.withOpacity(0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 20),
-              )
+              ),
             ],
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround, // Ikon merata
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: List.generate(_icons.length, (index) {
               TabItem icon = _icons[index];
-
               return Expanded(
-                key: icon.id, // Key unik untuk performa
+                key: icon.id, // Gunakan id unik tiap tab
                 child: CupertinoButton(
                   padding: const EdgeInsets.all(12),
                   child: AnimatedOpacity(
-                    // Mengatur opasitas berdasarkan tab yang dipilih
+                    // Efek transparansi jika tab tidak aktif
                     opacity: _selectedTab == index ? 1 : 0.5,
                     duration: const Duration(milliseconds: 200),
                     child: Stack(
                       clipBehavior: Clip.none,
                       alignment: Alignment.center,
                       children: [
-                        // Indikator tab aktif (garis kecil di atas ikon)
+                        // Garis indikator di atas tab yang aktif
                         Positioned(
                           top: -4,
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             height: 4,
-                            width: _selectedTab == index ? 20 : 0, // Lebar berubah
+                            width: _selectedTab == index ? 20 : 0,
                             decoration: BoxDecoration(
-                              color: RiveAppTheme.accentColor, // Warna aksen
+                              color: RiveAppTheme.accentColor,
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
                         ),
-                        // Ikon animasi Rive
+                        // Ikon animasi dari file Rive
                         SizedBox(
                           height: 36,
                           width: 36,
                           child: RiveAnimation.asset(
-                            app_assets.iconsRiv, // File Rive untuk ikon
-                            stateMachines: [icon.stateMachine],
-                            artboard: icon.artboard,
-                            onInit: (artboard) {
-                              _onRiveIconInit(artboard, index); // Inisialisasi animasi
-                            },
+                            app_assets.iconsRiv, // Lokasi file .riv
+                            stateMachines: [
+                              icon.stateMachine,
+                            ], // StateMachine yg dipakai
+                            artboard: icon.artboard, // Artboard yg dipilih
+                            onInit:
+                                (artboard) => _onRiveIconInit(artboard, index),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  onPressed: () {
-                    onTabPress(index); // Menangani klik tab
-                  },
+                  onPressed: () => onTabPress(index), // Tekan tab
                 ),
               );
             }),

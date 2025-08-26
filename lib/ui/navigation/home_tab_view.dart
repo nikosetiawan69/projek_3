@@ -128,119 +128,127 @@ class _HomeTabViewState extends State<HomeTabView> {
           color: RiveAppTheme.background,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            top: 60,
-            bottom: MediaQuery.of(context).padding.bottom,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight:
+                MediaQuery.of(context).size.height -
+                MediaQuery.of(context).padding.top -
+                MediaQuery.of(context).padding.bottom,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // -------------------------------
-              // Bagian Courses (Dinamis)
-              // -------------------------------
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  "Courses",
-                  style: TextStyle(fontSize: 34, fontFamily: "Poppins"),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+              top: 60,
+              bottom: MediaQuery.of(context).padding.bottom,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // -------------------------------
+                // Bagian Courses (Dinamis)
+                // -------------------------------
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    "Courses",
+                    style: TextStyle(fontSize: 34, fontFamily: "Poppins"),
+                  ),
                 ),
-              ),
 
-              StreamBuilder<List<MateriModel>>(
-                stream: _stream,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Text('Error: ${snapshot.error}'),
-                      ),
-                    );
-                  }
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Text('Belum ada materi'),
-                      ),
-                    );
-                  }
+                StreamBuilder<List<MateriModel>>(
+                  stream: _stream,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text('Error: ${snapshot.error}'),
+                        ),
+                      );
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Text('Belum ada materi'),
+                        ),
+                      );
+                    }
 
-                  final courses = snapshot.data!;
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children:
-                          courses
-                              .map(
-                                (course) => Padding(
-                                  key: ValueKey(course.id),
-                                  padding: const EdgeInsets.all(10),
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      await _addToRecent(course);
-                                      await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => CourseDetailPage(
-                                                course: course,
-                                              ),
-                                        ),
-                                      );
-                                      await _loadRecent();
-                                    },
-                                    child: Container(
-                                      child: VCard(course: course),
+                    final courses = snapshot.data!;
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children:
+                            courses
+                                .map(
+                                  (course) => Padding(
+                                    key: ValueKey(course.id),
+                                    padding: const EdgeInsets.all(10),
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        await _addToRecent(course);
+                                        await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) => CourseDetailPage(
+                                                  course: course,
+                                                ),
+                                          ),
+                                        );
+                                        await _loadRecent();
+                                      },
+                                      child: Container(
+                                        child: VCard(course: course),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              )
-                              .toList(),
-                    ),
-                  );
-                },
-              ),
-
-              // -------------------------------
-              // Bagian Recent
-              // -------------------------------
-              const Padding(
-                padding: EdgeInsets.only(left: 20, right: 20, bottom: 20),
-                child: Text(
-                  "Recent",
-                  style: TextStyle(fontSize: 20, fontFamily: "Poppins"),
+                                )
+                                .toList(),
+                      ),
+                    );
+                  },
                 ),
-              ),
 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Wrap(
-                  children: List.generate(
-                    _recentCourses.length,
-                    (index) => Container(
-                      key: ValueKey(_recentCourses[index].id),
-                      width:
-                          MediaQuery.of(context).size.width > 992
-                              ? ((MediaQuery.of(context).size.width - 20) / 2)
-                              : MediaQuery.of(context).size.width,
-                      padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
-                      child: HCard(recent: _recentCourses[index]),
+                // -------------------------------
+                // Bagian Recent
+                // -------------------------------
+                const Padding(
+                  padding: EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                  child: Text(
+                    "Recent",
+                    style: TextStyle(fontSize: 20, fontFamily: "Poppins"),
+                  ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Wrap(
+                    children: List.generate(
+                      _recentCourses.length,
+                      (index) => Container(
+                        key: ValueKey(_recentCourses[index].id),
+                        width:
+                            MediaQuery.of(context).size.width > 992
+                                ? ((MediaQuery.of(context).size.width - 20) / 2)
+                                : MediaQuery.of(context).size.width,
+                        padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
+                        child: HCard(recent: _recentCourses[index]),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

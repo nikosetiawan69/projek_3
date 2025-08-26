@@ -1,5 +1,6 @@
 // Mengimpor package material dari Flutter untuk widget Material Design
 import 'package:flutter/material.dart';
+import 'package:flutter_samples/ui/screen/setup_profile.dart';
 
 import '../../supabase/service/auth_service.dart';
 // Mengimpor widget RiveAppHome dari file home.dart
@@ -36,8 +37,16 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     try {
-      await authService.signUpWithEmailPassword(email, password);
-      Navigator.pop(context);
+      final userId = await authService.signUpWithEmailPasswordGetId(
+        email,
+        password,
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SetupProfilePage(email: email, userId: userId),
+        ),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -94,23 +103,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Column(
                   children: [
-                    TextField(
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: const Color(0xFFD3D3D3),
-                        hintText: 'Username',
-                        hintStyle: const TextStyle(color: Colors.black54),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 23, // Tinggi lebih besar di sini
-                          horizontal: 16,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
                     TextFormField(
                       controller: _emailController,
                       validator:

@@ -13,11 +13,28 @@ class AuthService {
     );
   }
 
-  Future<AuthResponse> signUpWithEmailPassword(
+  // Future<AuthResponse> signUpWithEmailPassword(
+  //   String email,
+  //   String password,
+  // ) async {
+  //   return await _supabase.auth.signUp(email: email, password: password);
+  // }
+
+  Future<String> signUpWithEmailPasswordGetId(
     String email,
     String password,
   ) async {
-    return await _supabase.auth.signUp(email: email, password: password);
+    final authRes = await _supabase.auth.signUp(
+      email: email,
+      password: password,
+    );
+    final userId = authRes.user?.id;
+
+    if (userId == null) {
+      throw Exception('Sign-up failed: user ID is null');
+    }
+
+    return userId;
   }
 
   Future<void> signOut() async {
@@ -28,5 +45,15 @@ class AuthService {
     final session = _supabase.auth.currentSession;
     final user = session?.user;
     return user?.email;
+  }
+
+  Future<String> getEmailByUsername(String username) async {
+    final res =
+        await _supabase
+            .from('profiles')
+            .select('email')
+            .eq('username', username)
+            .single();
+    return res['email'] as String;
   }
 }

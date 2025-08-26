@@ -12,21 +12,30 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final authService = AuthService();
-
   bool obscurePassword = true;
 
-  final _emailController = TextEditingController();
+  final _identifierController =
+      TextEditingController(); // bisa email / username
   final _passwordController = TextEditingController();
 
-  void login() async {
-    final email = _emailController.text;
+  Future<void> login() async {
+    final identifier = _identifierController.text.trim();
     final password = _passwordController.text;
 
     try {
+      // 1. Ambil email dari username jika perlu
+      final email =
+          identifier.contains('@')
+              ? identifier
+              : await authService.getEmailByUsername(identifier);
+
+      // 2. Login pakai email
       await authService.signInWithEmailPassword(email, password);
-      Navigator.push(
+
+      // 3. Navigasi ke home
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => RiveAppHome()),
+        MaterialPageRoute(builder: (_) => const RiveAppHome()),
       );
     } catch (e) {
       if (mounted) {
@@ -39,28 +48,29 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    const bgImage = AssetImage('assets/samples/images/bgawal.png');
+    const gradientBtn = LinearGradient(
+      colors: [Color(0xFF4B5EAA), Color(0xFF8A4AF3)],
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+    );
+
     return Scaffold(
       body: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/samples/images/bgawal.png'),
-            fit: BoxFit.cover,
-          ),
+          image: DecorationImage(image: bgImage, fit: BoxFit.cover),
         ),
         child: Center(
           child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo
                 SizedBox(
                   width: 150,
                   height: 150,
                   child: Image.asset('assets/samples/images/topi.png'),
                 ),
-
-                // Judul
                 const Text(
                   'SkillUp!',
                   style: TextStyle(
@@ -69,112 +79,39 @@ class _LoginPageState extends State<LoginPage> {
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
-                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
-
-                // Form Input
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Column(
                     children: [
-                      TextFormField(
-                        controller: _emailController,
-                        validator:
-                            (value) =>
-                                value == null || value.isEmpty
-                                    ? 'Email tidak boleh kosong'
-                                    : !RegExp(
-                                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                    ).hasMatch(value)
-                                    ? 'Format email tidak valid'
-                                    : null,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: const Color(0xFFD3D3D3),
-                          hintText: 'Gmail',
-                          hintStyle: const TextStyle(color: Colors.black54),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 23,
-                            horizontal: 16,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
+                      _input('Gmail / Username', _identifierController),
                       const SizedBox(height: 10),
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: obscurePassword,
-                        decoration: InputDecoration(
-                          suffixIcon: Padding(
-                            padding: EdgeInsets.only(right: 20),
-                            child: GestureDetector(
-                              behavior:
-                                  HitTestBehavior
-                                      .translucent, // area klik sesuai padding
-                              onTap: () {
-                                setState(
-                                  () => obscurePassword = !obscurePassword,
-                                );
-                              },
-                              child: Icon(
-                                obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: Colors.black,
-                                size: 22, // ukuran ikon
-                              ),
-                            ),
-                          ),
-                          filled: true,
-                          fillColor: const Color(0xFFD3D3D3),
-                          hintText: 'Password',
-                          hintStyle: const TextStyle(color: Colors.black54),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 23,
-                            horizontal: 16,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
+                      _input('Password', _passwordController, isPassword: true),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                // Tombol Sign Up dan Login berdampingan
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Row(
                     children: [
                       Expanded(
                         child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SignUpPage(),
+                          onTap:
+                              () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const SignUpPage(),
+                                ),
                               ),
-                            );
-                          },
                           child: Container(
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF4B5EAA), Color(0xFF8A4AF3)],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
+                              gradient: gradientBtn,
                               borderRadius: BorderRadius.circular(30),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 15),
                             alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
                             child: const Text(
                               'Sign Up',
                               style: TextStyle(
@@ -198,15 +135,11 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           child: Container(
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF4B5EAA), Color(0xFF8A4AF3)],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
+                              gradient: gradientBtn,
                               borderRadius: BorderRadius.circular(30),
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 15),
                             alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
                             child: const Text(
                               'Login',
                               style: TextStyle(
@@ -222,12 +155,50 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 30),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _input(
+    String hint,
+    TextEditingController controller, {
+    bool isPassword = false,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword ? obscurePassword : false,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: const Color(0xFFD3D3D3),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.black54),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 23,
+          horizontal: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        suffixIcon:
+            isPassword
+                ? GestureDetector(
+                  onTap:
+                      () => setState(() => obscurePassword = !obscurePassword),
+                  child: Icon(
+                    obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    color: Colors.black,
+                    size: 22,
+                  ),
+                )
+                : null,
       ),
     );
   }

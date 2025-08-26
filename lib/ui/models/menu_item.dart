@@ -23,25 +23,38 @@ class MenuItemModel {
   static List<MenuItemModel> menuItems = [
     MenuItemModel(
       title: "Home",
-      riveIcon: TabItem(stateMachine: "HOME_interactivity", artboard: "HOME"), // Menu untuk beranda
+      riveIcon: TabItem(
+        stateMachine: "HOME_interactivity",
+        artboard: "HOME",
+      ), // Menu untuk beranda
     ),
     MenuItemModel(
       title: "Search",
-      riveIcon:
-          TabItem(stateMachine: "SEARCH_Interactivity", artboard: "SEARCH"), // Menu untuk pencarian
+      riveIcon: TabItem(
+        stateMachine: "SEARCH_Interactivity",
+        artboard: "SEARCH",
+      ), // Menu untuk pencarian
     ),
     MenuItemModel(
-      title: "Add Courses ",
-      riveIcon:
-          TabItem(stateMachine: "STAR_Interactivity", artboard: "LIKE/STAR"), // Menu untuk favorit
+      title: "Add Courses",
+      riveIcon: TabItem(
+        stateMachine: "STAR_Interactivity",
+        artboard: "LIKE/STAR",
+      ), // Menu untuk favorit
     ),
     MenuItemModel(
       title: "Account",
-      riveIcon: TabItem(stateMachine: "USER_Interactivity", artboard: "USER"), // Menu untuk riwayat
-    ), 
+      riveIcon: TabItem(
+        stateMachine: "USER_Interactivity",
+        artboard: "USER",
+      ), // Menu untuk riwayat
+    ),
     MenuItemModel(
       title: "Help",
-      riveIcon: TabItem(stateMachine: "CHAT_Interactivity", artboard: "CHAT"), // Menu untuk bantuan
+      riveIcon: TabItem(
+        stateMachine: "CHAT_Interactivity",
+        artboard: "CHAT",
+      ), // Menu untuk bantuan
     ),
   ];
 
@@ -50,7 +63,7 @@ class MenuItemModel {
   //   MenuItemModel(
   //     title: "Account",
   //     riveIcon: TabItem(stateMachine: "USER_Interactivity", artboard: "USER"), // Menu untuk riwayat
-  //   ), 
+  //   ),
   //   MenuItemModel(
   //     title: "Notification",
   //     riveIcon: TabItem(stateMachine: "BELL_Interactivity", artboard: "BELL"), // Menu untuk notifikasi

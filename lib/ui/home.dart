@@ -1,108 +1,103 @@
-// Mengimpor package material dari Flutter untuk widget Material Design
 import 'package:flutter/material.dart';
-// Mengimpor package physics untuk simulasi animasi berbasis fisika (spring)
-import 'package:flutter/physics.dart';
-// Mengimpor package services untuk mengontrol overlay sistem (status bar)
-import 'package:flutter/services.dart';
-// Mengimpor halaman-halaman aplikasi
-import 'package:flutter_samples/ui/screen/acount.dart';
-import 'package:flutter_samples/ui/screen/addcourse.dart';
-// Mengimpor package Rive untuk animasi interaktif, dengan pengecualian LinearGradient dan Image
-import 'package:rive/rive.dart' hide LinearGradient, Image;
-// Mengimpor library matematika untuk operasi rotasi
-import 'dart:math' as math;
-// Mengimpor komponen navigasi kustom
-import 'package:flutter_samples/ui/navigation/custom_tab_bar.dart';
-import 'package:flutter_samples/ui/navigation/home_tab_view.dart';
-import 'package:flutter_samples/ui/navigation/side_menu.dart';
-// Mengimpor definisi tema aplikasi
-import 'package:flutter_samples/ui/theme.dart';
-// Mengimpor aset aplikasi (kemungkinan path file Rive atau gambar)
-import 'package:flutter_samples/ui/assets.dart' as app_assets;
-// Mengimpor halaman pencarian
-import 'package:flutter_samples/ui/screen/search.dart';
+import 'package:flutter/physics.dart'; // Untuk animasi berbasis fisika (SpringSimulation)
+import 'package:flutter/services.dart'; // Untuk mengatur system UI (status bar dsb.)
+import 'dart:math'
+    as math; // Perlu untuk perhitungan rotasi (rotateY pakai derajat -> radian)
 
-// Fungsi untuk membungkus konten tab dengan container berlatar belakang tema
+// Halaman aplikasi
+import 'package:flutter_samples/ui/screen/acount.dart'; // Halaman profil/akun
+import 'package:flutter_samples/ui/screen/addcourse.dart'; // Halaman tambah course
+import 'package:flutter_samples/ui/screen/contact.dart';
+import 'package:flutter_samples/ui/screen/search.dart'; // Halaman pencarian
+
+// Navigasi & tema
+import 'package:flutter_samples/ui/navigation/custom_tab_bar.dart'; // Bottom nav custom
+import 'package:flutter_samples/ui/navigation/home_tab_view.dart'; // Tab utama (home)
+import 'package:flutter_samples/ui/navigation/side_menu.dart'; // Menu samping (drawer animasi)
+import 'package:flutter_samples/ui/theme.dart'; // Tema warna global
+import 'package:flutter_samples/ui/assets.dart'
+    as app_assets; // Path assets (gambar, rive)
+
+// Rive (animasi vektor interaktif)
+import 'package:rive/rive.dart' hide LinearGradient, Image;
+
+// Helper: bungkus konten dalam background standar
 Widget commonTabScene(Widget content) {
   return Container(
-    // Menggunakan warna latar belakang dari tema aplikasi
     decoration: BoxDecoration(color: RiveAppTheme.background),
-    // Menempatkan konten di tengah
     alignment: Alignment.center,
     child: content,
   );
 }
 
-// Widget utama untuk halaman utama aplikasi dengan animasi Rive
+/// Halaman utama aplikasi (setelah login).
+/// Memuat side menu, tab, bottom navigation, serta animasi transisi.
 class RiveAppHome extends StatefulWidget {
   const RiveAppHome({super.key});
 
-  // Rute untuk navigasi ke halaman ini
-  static const String route = '/course-rive';
+  static const String route = '/course-rive'; // route untuk Navigator
 
   @override
   State<RiveAppHome> createState() => _RiveAppHomeState();
 }
 
-// State untuk RiveAppHome, mengelola animasi dan status
 class _RiveAppHomeState extends State<RiveAppHome>
     with TickerProviderStateMixin {
-  // Kontroler untuk animasi sidebar
+  // Controller animasi untuk side menu
   late AnimationController? _animationController;
-  // Kontroler untuk animasi onboarding
+  // Controller animasi untuk onboarding (popup)
   late AnimationController? _onBoardingAnimController;
-  // Animasi untuk onboarding
+
+  // Animasi interpolasi
   late Animation<double> _onBoardingAnim;
-  // Animasi untuk sidebar
   late Animation<double> _sidebarAnim;
 
-  // Variabel untuk mengontrol status tombol menu di animasi Rive
+  // Kontrol tombol menu (Rive state machine)
   late SMIBool _menuBtn;
 
-  // Menentukan apakah onboarding ditampilkan (saat ini tidak aktif)
-  final bool _showOnBoarding = false;
-  // Widget default untuk konten tab
+  final bool _showOnBoarding = false; // toggle untuk overlay onboarding
   Widget _tabBody = Container(color: RiveAppTheme.background);
-  // Daftar halaman yang dapat ditampilkan di tab
+
+  // Track tab aktif
+  int _currentTabIndex = 0;
+
+  // Daftar halaman/tab
   final List<Widget> _screens = [
-    const HomeTabView(),
-    commonTabScene(const SearchPage()),
-    commonTabScene(const AddCoursePage()),
-    commonTabScene(const AcountPage()),
+    const HomeTabView(), // Tab 0: Home
+    commonTabScene(const SearchPage()), // Tab 1: Search
+    commonTabScene(const AddCoursePage()), // Tab 2: Add Course
+    commonTabScene(const AcountPage()), // Tab 3: Account
   ];
-  // Konfigurasi animasi spring untuk efek halus
+
+  // Parameter fisika (spring simulation untuk animasi side menu)
   final springDesc = const SpringDescription(
-    mass: 0.1, // Massa untuk simulasi fisika
-    stiffness: 40, // Kekakuan pegas
-    damping: 5, // Redaman untuk mengurangi osilasi
+    mass: 0.1,
+    stiffness: 40,
+    damping: 5,
   );
 
-  // Inisialisasi animasi tombol menu dari file Rive
+  /// Callback init Rive tombol menu
   void _onMenuIconInit(Artboard artboard) {
     final controller = StateMachineController.fromArtboard(
       artboard,
       "State Machine",
     );
     artboard.addController(controller!);
-    // Mengambil input boolean 'isOpen' dari state machine Rive
     _menuBtn = controller.findInput<bool>("isOpen") as SMIBool;
-    _menuBtn.value = true; // Set default tombol menu ke terbuka
+    _menuBtn.value = true; // default terbuka
   }
 
-  // Fungsi untuk menangani klik tombol menu
+  /// Fungsi toggle menu samping (open/close) + sync status bar
   void onMenuPress() {
     if (_menuBtn.value) {
-      // Menggunakan animasi spring saat menu dibuka
       final springAnim = SpringSimulation(springDesc, 0, 1, 0);
       _animationController?.animateWith(springAnim);
     } else {
-      // Membalikkan animasi saat menu ditutup
       _animationController?.reverse();
     }
-    // Mengubah status tombol menu
     _menuBtn.change(!_menuBtn.value);
 
-    // Mengubah gaya overlay sistem (status bar) berdasarkan status menu
+    // Ubah warna ikon/status bar
     SystemChrome.setSystemUIOverlayStyle(
       _menuBtn.value ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
     );
@@ -111,51 +106,60 @@ class _RiveAppHomeState extends State<RiveAppHome>
   @override
   void initState() {
     super.initState();
-    // Inisialisasi kontroler animasi sidebar
+
+    // Init controller side menu
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 200),
       upperBound: 1,
       vsync: this,
     );
-    // Inisialisasi kontroler animasi onboarding
+
+    // Init controller onboarding overlay
     _onBoardingAnimController = AnimationController(
       duration: const Duration(milliseconds: 350),
       upperBound: 1,
       vsync: this,
     );
 
-    // Mengatur animasi sidebar dengan kurva linear
+    // Animasi linear side menu
     _sidebarAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _animationController!, curve: Curves.linear),
     );
 
-    // Mengatur animasi onboarding dengan kurva linear
+    // Animasi linear onboarding
     _onBoardingAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _onBoardingAnimController!, curve: Curves.linear),
     );
 
-    // Mengatur halaman awal sebagai tab pertama
-    _tabBody = _screens.first;
+    // Set tab awal
+    _tabBody = _screens[_currentTabIndex];
   }
 
   @override
   void dispose() {
-    // Membersihkan kontroler animasi untuk mencegah kebocoran memori
     _animationController?.dispose();
     _onBoardingAnimController?.dispose();
     super.dispose();
   }
 
+  /// Ganti tab bawah (bottom navigation)
+  void _changeTab(int index) {
+    setState(() {
+      _currentTabIndex = index;
+      _tabBody = _screens[index];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Mengizinkan konten meluas di bawah status bar
-      extendBody: true,
+      extendBody: true, // biar body extend di bawah navigation bar
       body: Stack(
         children: [
-          // Latar belakang dengan warna sekunder dari tema
+          // Background belakang
           Positioned(child: Container(color: RiveAppTheme.background2)),
-          // Animasi sidebar dengan transformasi rotasi dan translasi
+
+          // Side Menu animasi (geser + rotate)
           RepaintBoundary(
             child: AnimatedBuilder(
               animation: _sidebarAnim,
@@ -164,23 +168,25 @@ class _RiveAppHomeState extends State<RiveAppHome>
                   alignment: Alignment.center,
                   transform:
                       Matrix4.identity()
-                        ..setEntry(3, 2, 0.001) // Menambahkan perspektif 3D
+                        ..setEntry(3, 2, 0.001) // efek perspektif
                         ..rotateY(
                           ((1 - _sidebarAnim.value) * -30) * math.pi / 180,
-                        ) // Rotasi Y
-                        ..translate(
-                          (1 - _sidebarAnim.value) * -300,
-                        ), // Translasi horizontal
+                        )
+                        ..translate((1 - _sidebarAnim.value) * -300),
                   child: child,
                 );
               },
               child: FadeTransition(
                 opacity: _sidebarAnim,
-                child: const SideMenu(), // Widget menu samping
+                child: SideMenu(
+                  onTabChange: _changeTab, // sync tab menu
+                  closeMenu: onMenuPress,
+                ),
               ),
             ),
           ),
-          // Konten utama dengan animasi skala dan rotasi
+
+          // Konten utama (tab body) dengan transformasi
           RepaintBoundary(
             child: AnimatedBuilder(
               animation: _showOnBoarding ? _onBoardingAnim : _sidebarAnim,
@@ -192,35 +198,31 @@ class _RiveAppHomeState extends State<RiveAppHome>
                           ? _onBoardingAnim.value * 0.08
                           : _sidebarAnim.value * 0.1),
                   child: Transform.translate(
-                    offset: Offset(
-                      _sidebarAnim.value * 265,
-                      0,
-                    ), // Geser konten saat sidebar terbuka
+                    offset: Offset(_sidebarAnim.value * 265, 0),
                     child: Transform(
                       alignment: Alignment.center,
                       transform:
                           Matrix4.identity()
-                            ..setEntry(3, 2, 0.001) // Perspektif 3D
+                            ..setEntry(3, 2, 0.001)
                             ..rotateY(
                               (_sidebarAnim.value * 30) * math.pi / 180,
-                            ), // Rotasi Y
+                            ),
                       child: child,
                     ),
                   ),
                 );
               },
-              child: _tabBody, // Konten tab yang aktif
+              child: _tabBody,
             ),
           ),
-          // Ikon topi dengan animasi posisi
+
+          // Logo atas (topi.png)
           AnimatedBuilder(
             animation: _sidebarAnim,
             builder: (context, child) {
               return Positioned(
                 top: MediaQuery.of(context).padding.top + 20,
-                right:
-                    (_sidebarAnim.value * -100) +
-                    16, // Bergerak saat sidebar terbuka
+                right: (_sidebarAnim.value * -100) + 16,
                 child: child!,
               );
             },
@@ -228,14 +230,15 @@ class _RiveAppHomeState extends State<RiveAppHome>
               child: Container(
                 alignment: Alignment.center,
                 child: Image.asset(
-                  'assets/samples/images/topi.png', // Gambar ikon topi
+                  'assets/samples/images/topi.png',
                   width: 40,
                   height: 50,
                 ),
               ),
             ),
           ),
-          // Tombol menu dengan animasi Rive
+
+          // Tombol menu Rive (pojok kiri atas)
           RepaintBoundary(
             child: AnimatedBuilder(
               animation: _sidebarAnim,
@@ -243,49 +246,45 @@ class _RiveAppHomeState extends State<RiveAppHome>
                 return SafeArea(
                   child: Row(
                     children: [
-                      SizedBox(
-                        width: _sidebarAnim.value * 216,
-                      ), // Spacer untuk posisi tombol
+                      SizedBox(width: _sidebarAnim.value * 216),
                       child!,
                     ],
                   ),
                 );
               },
               child: GestureDetector(
-                onTap: onMenuPress, // Menangani klik tombol menu
+                onTap: onMenuPress,
                 child: MouseRegion(
-                  cursor: SystemMouseCursors.click, // Kursor klik pada desktop
+                  cursor: SystemMouseCursors.click,
                   child: Container(
                     width: 44,
                     height: 44,
                     margin: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        44 / 2,
-                      ), // Bentuk lingkaran
+                      borderRadius: BorderRadius.circular(44 / 2),
                       boxShadow: [
                         BoxShadow(
-                          color: RiveAppTheme.shadow.withOpacity(
-                            0.2,
-                          ), // Bayangan tombol
+                          color: RiveAppTheme.shadow.withAlpha(
+                            (0.2 * 255).round(),
+                          ),
                           blurRadius: 5,
                           offset: const Offset(0, 5),
                         ),
                       ],
                     ),
                     child: RiveAnimation.asset(
-                      app_assets
-                          .menuButtonRiv, // File animasi Rive untuk tombol
+                      app_assets.menuButtonRiv,
                       stateMachines: const ["State Machine"],
                       animations: const ["open", "close"],
-                      onInit: _onMenuIconInit, // Inisialisasi animasi Rive
+                      onInit: _onMenuIconInit,
                     ),
                   ),
                 ),
               ),
             ),
           ),
-          // Widget onboarding (tidak aktif saat ini)
+
+          // Onboarding overlay (kalau aktif)
           if (_showOnBoarding)
             RepaintBoundary(
               child: AnimatedBuilder(
@@ -296,7 +295,7 @@ class _RiveAppHomeState extends State<RiveAppHome>
                       0,
                       -(MediaQuery.of(context).size.height +
                               MediaQuery.of(context).padding.bottom) *
-                          (1 - _onBoardingAnim.value), // Animasi geser vertikal
+                          (1 - _onBoardingAnim.value),
                     ),
                     child: child!,
                   );
@@ -317,7 +316,7 @@ class _RiveAppHomeState extends State<RiveAppHome>
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withAlpha((0.5 * 255).round()),
                           blurRadius: 40,
                           offset: const Offset(0, 40),
                         ),
@@ -327,9 +326,10 @@ class _RiveAppHomeState extends State<RiveAppHome>
                 ),
               ),
             ),
-          // Efek gradien di bagian bawah layar
+
+          // Overlay gradasi bawah (untuk efek bayangan transisi)
           IgnorePointer(
-            ignoring: true, // Tidak menerima input pengguna
+            ignoring: true,
             child: Align(
               alignment: Alignment.bottomCenter,
               child: AnimatedBuilder(
@@ -340,15 +340,15 @@ class _RiveAppHomeState extends State<RiveAppHome>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          RiveAppTheme.background.withOpacity(
-                            0,
-                          ), // Transparan di atas
-                          RiveAppTheme.background.withOpacity(
-                            1 -
-                                (!_showOnBoarding
-                                    ? _sidebarAnim.value
-                                    : _onBoardingAnim.value),
-                          ), // Opasitas berubah berdasarkan animasi
+                          RiveAppTheme.background.withAlpha(0),
+                          RiveAppTheme.background.withAlpha(
+                            ((1 -
+                                        (!_showOnBoarding
+                                            ? _sidebarAnim.value
+                                            : _onBoardingAnim.value)) *
+                                    255)
+                                .round(),
+                          ),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -361,7 +361,8 @@ class _RiveAppHomeState extends State<RiveAppHome>
           ),
         ],
       ),
-      // Tab bar di bagian bawah
+
+      // Bottom Navigation Bar custom
       bottomNavigationBar: RepaintBoundary(
         child: AnimatedBuilder(
           animation: !_showOnBoarding ? _sidebarAnim : _onBoardingAnim,
@@ -372,7 +373,7 @@ class _RiveAppHomeState extends State<RiveAppHome>
                 !_showOnBoarding
                     ? _sidebarAnim.value * 300
                     : _onBoardingAnim.value * 200,
-              ), // Geser tab bar saat sidebar atau onboarding aktif
+              ),
               child: child,
             );
           },
@@ -380,12 +381,8 @@ class _RiveAppHomeState extends State<RiveAppHome>
             alignment: Alignment.center,
             children: [
               CustomTabBar(
-                onTabChange: (tabIndex) {
-                  setState(() {
-                    _tabBody =
-                        _screens[tabIndex]; // Mengganti konten tab saat tab berubah
-                  });
-                },
+                currentIndex: _currentTabIndex, // tab aktif
+                onTabChange: _changeTab, // ganti tab
               ),
             ],
           ),
