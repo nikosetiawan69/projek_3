@@ -28,8 +28,8 @@ class _SetupProfilePageState extends State<SetupProfilePage> {
     try {
       await Supabase.instance.client.from('profiles').insert({
         'id': widget.userId,
-        'username': '@$username',
-        'display_name': '$firstName $lastName',
+        'username': username,
+        'display_name': '${firstName.toUpperCase()} ${lastName.toUpperCase()}',
         'email': widget.email,
       });
 

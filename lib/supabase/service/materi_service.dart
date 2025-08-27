@@ -27,17 +27,7 @@ class MateriService {
     required String videoUrl,
     required String subTitle,
   }) async {
-    final bytes = await imagePath.readAsBytes();
-    final userId = _client.auth.currentUser!.id;
-    final fileName =
-        '$userId/${DateTime.now().millisecondsSinceEpoch}_${p.basename(imagePath.path)}';
-
-    await _client.storage.from('image_course').uploadBinary(fileName, bytes);
-
-    final imageUrl = _client.storage
-        .from('image_course')
-        .getPublicUrl(fileName);
-
+    final imageUrl = await _uploadImage(imagePath);
     final model = MateriModel(
       title: title,
       content: content,
@@ -68,6 +58,36 @@ class MateriService {
         .eq('id', oldMateri.id!);
   }
 
+  Future<void> updateMateriWithImage({
+    required MateriModel current,
+    required String newTitle,
+    required String newContent,
+    required String newVideoUrl,
+    required String newSubTitle,
+    XFile? newImageFile,
+    String? currentImageUrl,
+  }) async {
+    String finalImageUrl = currentImageUrl ?? current.imageUrl;
+
+    if (newImageFile != null) {
+      // hapus gambar lama
+      await deleteImageFromStorage(current.imageUrl);
+      // upload gambar baru
+      finalImageUrl = await _uploadImage(newImageFile);
+    }
+
+    await _client
+        .from('materi')
+        .update({
+          'title': newTitle,
+          'content': newContent,
+          'image_url': finalImageUrl,
+          'video_url': newVideoUrl,
+          'subtitle': newSubTitle,
+        })
+        .eq('id', current.id!);
+  }
+
   Future<void> deleteImageFromStorage(String imageUrl) async {
     try {
       final uri = Uri.parse(imageUrl);
@@ -82,13 +102,28 @@ class MateriService {
           .catchError((_) {
             return _client.storage.from('image_course').remove([fileName]);
           });
-    } catch (e) {
-      debugPrint("Gagal hapus image: $e");
-    }
+    } catch (e) {}
   }
 
   Future deleteMateri(MateriModel materi) async {
     await _client.from('materi').delete().eq('id', materi.id!);
     await deleteImageFromStorage(materi.imageUrl);
+  }
+
+  Future<String> _uploadImage(XFile file) async {
+    final bytes = await file.readAsBytes();
+    final userId = _client.auth.currentUser!.id;
+    final fileName =
+        '$userId/${DateTime.now().millisecondsSinceEpoch}_${p.basename(file.path)}';
+
+    await _client.storage
+        .from('image_course')
+        .uploadBinary(
+          fileName,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
+
+    return _client.storage.from('image_course').getPublicUrl(fileName);
   }
 }

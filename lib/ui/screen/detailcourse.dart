@@ -2,15 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_samples/supabase/service/materi_service.dart';
 import 'package:flutter_samples/supabase/models/materi_model.dart';
 import 'package:flutter_samples/ui/models/courses.dart';
+import 'package:flutter_samples/ui/screen/edit_course_page.dart';
 import 'package:flutter_samples/ui/theme.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class CourseDetailPage extends StatelessWidget {
+class CourseDetailPage extends StatefulWidget {
   const CourseDetailPage({super.key, required this.course});
 
   final MateriModel course;
 
   @override
+  State<CourseDetailPage> createState() => _CourseDetailPageState();
+}
+
+class _CourseDetailPageState extends State<CourseDetailPage> {
+  @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
     return Container(
       color: RiveAppTheme.background2,
       child: Center(
@@ -24,7 +32,7 @@ class CourseDetailPage extends StatelessWidget {
             backgroundColor: RiveAppTheme.background,
             appBar: AppBar(
               title: Text(
-                course.title,
+                widget.course.title,
                 style: const TextStyle(
                   fontFamily: "Poppins",
                   fontSize: 20,
@@ -48,7 +56,7 @@ class CourseDetailPage extends StatelessWidget {
                       clipBehavior: Clip.antiAlias,
                       elevation: 10,
                       child: Image.network(
-                        course.imageUrl,
+                        widget.course.imageUrl,
                         height: 250,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -56,7 +64,7 @@ class CourseDetailPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      course.videoUrl,
+                      widget.course.videoUrl,
                       style: const TextStyle(
                         fontSize: 16,
                         fontFamily: "Inter",
@@ -65,22 +73,48 @@ class CourseDetailPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      course.subTitle,
+                      widget.course.subTitle,
                       style: const TextStyle(
                         fontSize: 16,
                         fontFamily: "Inter",
                         color: Colors.black54,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "hello world",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontFamily: "Inter",
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black45,
-                      ),
+                    StreamBuilder<List<Map<String, dynamic>>>(
+                      stream: Supabase.instance.client
+                          .from('profiles')
+                          .stream(primaryKey: ['id'])
+                          .eq('id', user!.id),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Text("Loading...");
+                        }
+                        if (snapshot.hasError ||
+                            !snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          // Fallback ke email jika display_name tidak ada
+                          return Text(
+                            user.userMetadata?['full_name'] ??
+                                user.email ??
+                                "No Name",
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 17,
+                            ),
+                          );
+                        }
+
+                        final data = snapshot.data!.first;
+                        return Text(
+                          data['display_name'] ?? user.email ?? "None",
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 17,
+                            fontFamily: "Inter",
+                          ),
+                        );
+                      },
                     ),
 
                     /// Card deskripsi
@@ -94,7 +128,7 @@ class CourseDetailPage extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(
-                          course.content,
+                          widget.course.content,
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.white,
@@ -119,12 +153,21 @@ class CourseDetailPage extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Edit button pressed"),
+                            onPressed: () async {
+                              final updated = await Navigator.push<MateriModel>(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) =>
+                                          EditCoursePage(course: widget.course),
                                 ),
                               );
+                              if (updated != null && context.mounted) {
+                                Navigator.pop(
+                                  context,
+                                  updated,
+                                ); // balik ke HomeTabView
+                              }
                             },
                             child: const Text(
                               "Edit",
@@ -179,7 +222,9 @@ class CourseDetailPage extends StatelessWidget {
                               if (confirm != true) return;
 
                               try {
-                                await MateriService().deleteMateri(course);
+                                await MateriService().deleteMateri(
+                                  widget.course,
+                                );
 
                                 if (!context.mounted) return;
 

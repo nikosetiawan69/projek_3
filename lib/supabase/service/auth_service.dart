@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
@@ -53,7 +54,10 @@ class AuthService {
             .from('profiles')
             .select('email')
             .eq('username', username)
-            .single();
+            .maybeSingle();
+    if (res == null) {
+      throw Exception('Username not found');
+    }
     return res['email'] as String;
   }
 }

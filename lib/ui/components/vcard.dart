@@ -1,6 +1,7 @@
 // Mengimpor package material dari Flutter untuk widget Material Design
 import 'package:flutter/material.dart';
 import 'package:flutter_samples/supabase/models/materi_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Widget untuk kartu kursus vertikal
 class VCard extends StatefulWidget {
@@ -27,6 +28,7 @@ class _VCardState extends State<VCard> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
     return SizedBox(
       width: 260,
       height: 310,
@@ -90,15 +92,41 @@ class _VCardState extends State<VCard> {
                 ),
                 const SizedBox(height: 8), // Jarak antar elemen
                 // Keterangan kursus (uppercase)
-                Text(
-                  "Hello world",
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontFamily: "Inter", // Font kustom
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
+                StreamBuilder<List<Map<String, dynamic>>>(
+                  stream:
+                      Supabase.instance.client
+                          .from('profiles')
+                          .stream(primaryKey: ['id'])
+                          .eq('id', user!.id) // user.id dari Supabase auth
+                          .execute(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text(
+                        "Loading...",
+                        style: TextStyle(color: Colors.white, fontSize: 17),
+                      );
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Text(
+                        "None",
+                        style: TextStyle(color: Colors.white, fontSize: 17),
+                      );
+                    }
+
+                    final data = snapshot.data!.first;
+                    final username = data['display_name'] ?? "huhuhu";
+
+                    return Text(
+                      username,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontFamily: "Inter",
+                      ),
+                    );
+                  },
                 ),
+
                 const Spacer(), // Mengisi ruang kosong di bawah
               ],
             ),

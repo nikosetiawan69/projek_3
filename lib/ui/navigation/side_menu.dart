@@ -244,7 +244,7 @@ class _SideMenuState extends State<SideMenu> {
                         }
 
                         final data = snapshot.data!.first;
-                        final username = data['username'] ?? "huhuhu";
+                        final username = data['display_name'] ?? "None";
 
                         return Text(
                           username,
@@ -256,6 +256,7 @@ class _SideMenuState extends State<SideMenu> {
                         );
                       },
                     ),
+                  
                   ],
                 ),
               ],

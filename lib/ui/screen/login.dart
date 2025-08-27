@@ -19,15 +19,18 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
 
   Future<void> login() async {
+    debugPrint('--- login dipanggil ---');
     final identifier = _identifierController.text.trim();
     final password = _passwordController.text;
+    debugPrint('identifier: $identifier');
 
     try {
       // 1. Ambil email dari username jika perlu
-      final email =
-          identifier.contains('@')
-              ? identifier
-              : await authService.getEmailByUsername(identifier);
+      // final usernameInput =
+      //     identifier.startsWith('@') ? identifier : '@$identifier';
+      final usernameInput = identifier;
+      debugPrint('usernameInput: $usernameInput');
+      final email = await authService.getEmailByUsername(usernameInput);
 
       // 2. Login pakai email
       await authService.signInWithEmailPassword(email, password);
@@ -42,6 +45,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text("Error: $e")));
+        debugPrint('error: $e');
       }
     }
   }
