@@ -1,4 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 1. Internet -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- 2. Storage (target SDK < 33) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <!-- 3. Storage (target SDK >= 33) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <application
         android:label="SkillUp"
         android:name="${applicationName}"

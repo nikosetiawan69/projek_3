@@ -4,6 +4,7 @@ import 'package:flutter_samples/supabase/models/materi_model.dart';
 // Mengimpor model data untuk kursus
 import 'package:flutter_samples/ui/models/courses.dart';
 import 'package:flutter_samples/ui/screen/detailcourse.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Widget untuk kartu kursus horizontal
 class HCard extends StatefulWidget {
@@ -25,6 +26,8 @@ class _HCardState extends State<HCard> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -58,23 +61,69 @@ class _HCardState extends State<HCard> {
                       CrossAxisAlignment.start, // Teks rata kiri
                   children: [
                     // Judul seksi kursus
-                    Text(
-                      widget.recent.title,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontFamily: "Poppins", // Font kustom
-                        color: Colors.white,
+                    Flexible(
+                      child: FittedBox(
+                        child: Text(
+                          maxLines: 1, // <= batasi baris
+                          overflow: TextOverflow.ellipsis,
+                          widget.recent.title,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontFamily: "Poppins", // Font kustom
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8), // Jarak antar teks
                     // Keterangan seksi kursus
                     Text(
+                      maxLines: 1, // <= batasi baris
+                      overflow: TextOverflow.ellipsis,
                       widget.recent.subTitle,
                       style: const TextStyle(
                         fontSize: 17,
                         fontFamily: "Inter", // Font kustom
                         color: Colors.white,
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    StreamBuilder<List<Map<String, dynamic>>>(
+                      stream:
+                          Supabase.instance.client
+                              .from('profiles')
+                              .stream(primaryKey: ['id'])
+                              .eq('id', user!.id) // user.id dari Supabase auth
+                              .execute(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Text(
+                            "Loading...",
+                            style: TextStyle(color: Colors.white, fontSize: 17),
+                          );
+                        }
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return const Text(
+                            "None",
+                            style: TextStyle(color: Colors.white, fontSize: 17),
+                          );
+                        }
+
+                        final data = snapshot.data!.first;
+                        final username = data['display_name'] ?? "None";
+
+                        return Text(
+                          maxLines: 2, // <= batasi baris
+                          overflow: TextOverflow.ellipsis,
+                          "By $username",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontFamily: "Inter",
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

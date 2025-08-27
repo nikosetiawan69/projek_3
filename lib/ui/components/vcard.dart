@@ -68,6 +68,8 @@ class _VCardState extends State<VCard> {
                 Container(
                   constraints: const BoxConstraints(maxWidth: 170),
                   child: Text(
+                    maxLines: 2, // <= batasi baris
+                    overflow: TextOverflow.ellipsis,
                     widget.course.title,
                     style: const TextStyle(
                       fontSize: 24,
@@ -117,7 +119,9 @@ class _VCardState extends State<VCard> {
                     final username = data['display_name'] ?? "huhuhu";
 
                     return Text(
-                      username,
+                      maxLines: 2, // <= batasi baris
+                      overflow: TextOverflow.ellipsis,
+                      "By $username",
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 17,

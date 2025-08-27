@@ -1,11 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data' show Uint8List;
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_samples/ui/home.dart';
 import 'package:flutter_samples/ui/theme.dart';
 import 'package:flutter_samples/supabase/service/materi_service.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart'
+    if (kIsWeb) 'package:flutter_samples/ui/empty_permission.dart';
 
 class AddCoursePage extends StatefulWidget {
   const AddCoursePage({super.key});
@@ -28,7 +31,29 @@ class _AddCoursePageState extends State<AddCoursePage> {
 
   bool _isUpLoading = false;
 
+  Future<bool> _requestPermission() async {
+    if (kIsWeb) return true;
+    PermissionStatus status;
+
+    // Android 13+
+    if (Platform.isAndroid &&
+        (await DeviceInfoPlugin().androidInfo).version.sdkInt >= 33) {
+      status = await Permission.photos.request();
+    } else {
+      status = await Permission.storage.request();
+    }
+
+    return status.isGranted;
+  }
+
   Future<void> _pickImage() async {
+    final granted = await _requestPermission();
+    if (!granted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Izin file ditolak')));
+      return;
+    }
     final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
     if (picked == null) return;
     if (kIsWeb) {
@@ -70,10 +95,7 @@ class _AddCoursePageState extends State<AddCoursePage> {
         subTitle: _subtitleController.text.trim(),
       );
       if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => RiveAppHome()),
-      );
+      Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(

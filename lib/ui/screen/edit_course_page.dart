@@ -6,6 +6,9 @@ import 'package:flutter_samples/supabase/models/materi_model.dart';
 import 'package:flutter_samples/supabase/service/materi_service.dart';
 import 'package:flutter_samples/ui/theme.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart'
+    if (kIsWeb) 'package:flutter_samples/ui/empty_permission.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class EditCoursePage extends StatefulWidget {
   const EditCoursePage({super.key, required this.course});
@@ -38,9 +41,31 @@ class _EditCoursePageState extends State<EditCoursePage> {
     _videoCtrl = TextEditingController(text: widget.course.videoUrl);
   }
 
+  Future<bool> _requestPermission() async {
+    PermissionStatus status;
+    final androidInfo = await DeviceInfoPlugin().androidInfo;
+    if (Platform.isAndroid && androidInfo.version.sdkInt >= 33) {
+      status = await Permission.photos.request();
+    } else {
+      status = await Permission.storage.request();
+    }
+    return status.isGranted;
+  }
+
   Future<void> _pickImage() async {
+    if (!kIsWeb) {
+      final granted = await _requestPermission();
+      if (!granted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Izin file ditolak')));
+        return;
+      }
+    }
+
     final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
     if (picked == null) return;
+
     if (kIsWeb) {
       final bytes = await picked.readAsBytes();
       setState(() => _imageData = bytes);
@@ -142,14 +167,16 @@ class _EditCoursePageState extends State<EditCoursePage> {
           ? Image.file(_imageData as File, fit: BoxFit.cover)
           : const SizedBox();
     }
-    return Image.network(
-      _imageCtrl.text,
-      height: 160,
-      fit: BoxFit.cover,
-      errorBuilder:
-          (_, __, ___) => const Center(
-            child: Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
-          ),
+    return Center(
+      child: Image.network(
+        _imageCtrl.text,
+        height: 160,
+        fit: BoxFit.cover,
+        errorBuilder:
+            (_, __, ___) => const Center(
+              child: Icon(Icons.add_a_photo, size: 40, color: Colors.grey),
+            ),
+      ),
     );
   }
 

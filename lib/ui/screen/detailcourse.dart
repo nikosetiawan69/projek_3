@@ -5,6 +5,7 @@ import 'package:flutter_samples/ui/models/courses.dart';
 import 'package:flutter_samples/ui/screen/edit_course_page.dart';
 import 'package:flutter_samples/ui/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CourseDetailPage extends StatefulWidget {
   const CourseDetailPage({super.key, required this.course});
@@ -16,6 +17,25 @@ class CourseDetailPage extends StatefulWidget {
 }
 
 class _CourseDetailPageState extends State<CourseDetailPage> {
+  Future<void> _launchVideo(BuildContext context) async {
+    if (widget.course.videoUrl.isEmpty) return; // kalau kosong, abaikan
+    final url = Uri.parse(widget.course.videoUrl);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      ); // buka pakai browser/app eksternal
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not launch video'),
+          ), // notif error
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
@@ -62,16 +82,19 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.course.videoUrl,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontFamily: "Inter",
-                        color: Colors.black54,
+                    if (widget.course.videoUrl.isNotEmpty)
+                      InkWell(
+                        onTap: () => _launchVideo(context),
+                        child: Text(
+                          widget.course.videoUrl,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontFamily: "Inter",
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
                     Text(
                       widget.course.subTitle,
                       style: const TextStyle(
@@ -95,9 +118,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                             snapshot.data!.isEmpty) {
                           // Fallback ke email jika display_name tidak ada
                           return Text(
-                            user.userMetadata?['full_name'] ??
-                                user.email ??
-                                "No Name",
+                            "By ${user.userMetadata?['full_name'] ?? user.email ?? "No Name"}",
                             style: const TextStyle(
                               color: Colors.black,
                               fontSize: 17,
@@ -107,7 +128,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
 
                         final data = snapshot.data!.first;
                         return Text(
-                          data['display_name'] ?? user.email ?? "None",
+                          "By ${data['display_name'] ?? user.email ?? "None"}",
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 17,
