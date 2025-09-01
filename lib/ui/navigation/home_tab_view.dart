@@ -6,7 +6,6 @@ import 'package:flutter_samples/supabase/models/materi_model.dart';
 import 'package:flutter_samples/ui/components/vcard.dart';
 import 'package:flutter_samples/ui/components/hcard.dart';
 // Model
-import 'package:flutter_samples/ui/models/courses.dart';
 import 'package:flutter_samples/ui/screen/detailcourse.dart';
 // Tema
 import 'package:flutter_samples/ui/theme.dart';

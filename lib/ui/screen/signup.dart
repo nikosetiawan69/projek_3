@@ -15,6 +15,30 @@ class SignUpPage extends StatefulWidget {
 
 // State untuk SignUpPage, mengelola UI halaman awal
 class _SignUpPageState extends State<SignUpPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  final emailRegex = RegExp(r'^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$');
+
+  String? validateEmail(String value) {
+    if (value.isEmpty) return "Wajib diisi";
+    if (!emailRegex.hasMatch(value)) {
+      return "Gunakan email atau username yang valid";
+    }
+    return null;
+  }
+
+  String? validatePassword(String value) {
+    if (value.isEmpty) return "Password wajib diisi";
+    if (value.length < 8) return "Minimal 8 karakter";
+    return null;
+  }
+
+  String? validateConfirmPassword(String value, String password) {
+    if (value.isEmpty) return "Konfirmasi password wajib diisi";
+    if (value != password) return "Password tidak sama";
+    return null;
+  }
+
   final authService = AuthService();
 
   bool obscurePassword = true;
@@ -101,115 +125,31 @@ class _SignUpPageState extends State<SignUpPage> {
               const SizedBox(height: 20), // Jarak antar elemen
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _emailController,
-                      validator:
-                          (value) =>
-                              value == null || value.isEmpty
-                                  ? 'Email tidak boleh kosong'
-                                  : !RegExp(
-                                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                  ).hasMatch(value)
-                                  ? 'Format email tidak valid'
-                                  : null,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: const Color(0xFFD3D3D3),
-                        hintText: 'Gmail',
-                        hintStyle: const TextStyle(color: Colors.black54),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 23,
-                          horizontal: 16,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _input(
+                        'Gmail',
+                        _emailController,
+                        validator: validateEmail,
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: obscurePassword,
-                      decoration: InputDecoration(
-                        suffixIcon: Padding(
-                          padding: EdgeInsets.only(right: 20),
-                          child: GestureDetector(
-                            behavior:
-                                HitTestBehavior
-                                    .translucent, // area klik sesuai padding
-                            onTap: () {
-                              setState(
-                                () => obscurePassword = !obscurePassword,
-                              );
-                            },
-                            child: Icon(
-                              obscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              color: Colors.black,
-                              size: 22, // ukuran ikon
-                            ),
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFFD3D3D3),
-                        hintText: 'Password',
-                        hintStyle: const TextStyle(color: Colors.black54),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 23,
-                          horizontal: 16,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
+                      const SizedBox(height: 10),
+                      _input(
+                        'Password',
+                        _passwordController,
+                        isPassword: true,
+                        validator: validatePassword,
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _confirmpasswordController,
-                      obscureText: confirmobscurePassword,
-                      decoration: InputDecoration(
-                        suffixIcon: Padding(
-                          padding: EdgeInsets.only(right: 20),
-                          child: GestureDetector(
-                            behavior:
-                                HitTestBehavior
-                                    .translucent, // area klik sesuai padding
-                            onTap: () {
-                              setState(
-                                () =>
-                                    confirmobscurePassword =
-                                        !confirmobscurePassword,
-                              );
-                            },
-                            child: Icon(
-                              confirmobscurePassword
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              color: Colors.black,
-                              size: 22, // ukuran ikon
-                            ),
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFFD3D3D3),
-                        hintText: 'Confirm Password',
-                        hintStyle: const TextStyle(color: Colors.black54),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 23,
-                          horizontal: 16,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
-                        ),
+                      const SizedBox(height: 10),
+                      _input(
+                        'Confirm Password',
+                        _confirmpasswordController,
+                        isPassword: true,
+                        validator: validatePassword,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 
@@ -254,6 +194,47 @@ class _SignUpPageState extends State<SignUpPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _input(
+    String hint,
+    TextEditingController controller, {
+    bool isPassword = false,
+    String? Function(String value)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: isPassword ? obscurePassword : false,
+      validator: (val) => validator != null ? validator(val ?? '') : null,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: const Color(0xFFD3D3D3),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.black54),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 23,
+          horizontal: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
+        suffixIcon:
+            isPassword
+                ? GestureDetector(
+                  onTap:
+                      () => setState(() => obscurePassword = !obscurePassword),
+                  child: Icon(
+                    obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    color: Colors.black,
+                    size: 22,
+                  ),
+                )
+                : null,
       ),
     );
   }

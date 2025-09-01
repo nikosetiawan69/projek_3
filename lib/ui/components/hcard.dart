@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_samples/supabase/models/materi_model.dart';
 // Mengimpor model data untuk kursus
-import 'package:flutter_samples/ui/models/courses.dart';
 import 'package:flutter_samples/ui/screen/detailcourse.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

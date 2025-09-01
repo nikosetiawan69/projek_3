@@ -11,8 +11,26 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final emailRegex = RegExp(r'^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$');
+  final usernameRegex = RegExp(r'^[a-zA-Z0-9._]{3,20}$');
   final authService = AuthService();
   bool obscurePassword = true;
+
+  final _formKey = GlobalKey<FormState>();
+
+  String? validateIdentifier(String value) {
+    if (value.isEmpty) return "Wajib diisi";
+    if (!emailRegex.hasMatch(value) && !usernameRegex.hasMatch(value)) {
+      return "Gunakan email atau username yang valid";
+    }
+    return null;
+  }
+
+  String? validatePassword(String value) {
+    if (value.isEmpty) return "Password wajib diisi";
+    if (value.length < 8) return "Minimal 8 karakter";
+    return null;
+  }
 
   final _identifierController =
       TextEditingController(); // bisa email / username
@@ -27,7 +45,10 @@ class _LoginPageState extends State<LoginPage> {
       // final usernameInput =
       //     identifier.startsWith('@') ? identifier : '@$identifier';
       final usernameInput = identifier;
-      final email = await authService.getEmailByUsername(usernameInput);
+      final email =
+          emailRegex.hasMatch(usernameInput)
+              ? usernameInput
+              : await authService.getEmailByUsername(usernameInput);
 
       // 2. Login pakai email
       await authService.signInWithEmailPassword(email, password);
@@ -84,12 +105,24 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: Column(
-                    children: [
-                      _input('Gmail / Username', _identifierController),
-                      const SizedBox(height: 10),
-                      _input('Password', _passwordController, isPassword: true),
-                    ],
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        _input(
+                          'Gmail / Username',
+                          _identifierController,
+                          validator: validateIdentifier,
+                        ),
+                        const SizedBox(height: 10),
+                        _input(
+                          'Password',
+                          _passwordController,
+                          isPassword: true,
+                          validator: validatePassword,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -169,10 +202,12 @@ class _LoginPageState extends State<LoginPage> {
     String hint,
     TextEditingController controller, {
     bool isPassword = false,
+    String? Function(String value)? validator,
   }) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: isPassword ? obscurePassword : false,
+      validator: (val) => validator != null ? validator(val ?? '') : null,
       decoration: InputDecoration(
         filled: true,
         fillColor: const Color(0xFFD3D3D3),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_samples/supabase/service/materi_service.dart';
 import 'package:flutter_samples/supabase/models/materi_model.dart';
-import 'package:flutter_samples/ui/models/courses.dart';
 import 'package:flutter_samples/ui/screen/edit_course_page.dart';
 import 'package:flutter_samples/ui/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
