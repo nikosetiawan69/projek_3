@@ -1,6 +1,15 @@
 allprojects {
     repositories {
         google()
+        maven { url = uri("https://maven-central-asia.storage-download.googleapis.com/") }
+        mavenCentral()
+    }
+}
+
+buildscript {
+    repositories {
+        google()
+        maven { url = uri("https://maven-central-asia.storage-download.googleapis.com/") }
         mavenCentral()
     }
 }

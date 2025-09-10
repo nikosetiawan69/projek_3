@@ -98,6 +98,7 @@ class _EditCoursePageState extends State<EditCoursePage> {
         content: _contentCtrl.text.trim(),
         imageUrl: _imageCtrl.text.trim(),
         videoUrl: _videoCtrl.text.trim(),
+        createdBy: widget.course.createdBy
       );
 
       await MateriService().updateMateriWithImage(

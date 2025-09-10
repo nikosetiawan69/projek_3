@@ -106,7 +106,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                       stream: Supabase.instance.client
                           .from('profiles')
                           .stream(primaryKey: ['id'])
-                          .eq('id', user!.id),
+                          .eq('id', widget.course.createdBy),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -117,7 +117,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                             snapshot.data!.isEmpty) {
                           // Fallback ke email jika display_name tidak ada
                           return Text(
-                            "By ${user.userMetadata?['full_name'] ?? user.email ?? "No Name"}",
+                            "By -",
                             style: const TextStyle(
                               color: Colors.black,
                               fontSize: 17,
@@ -127,7 +127,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
 
                         final data = snapshot.data!.first;
                         return Text(
-                          "By ${data['display_name'] ?? user.email ?? "None"}",
+                          "By ${data['display_name'] ?? data['username'] ?? "None"}",
                           style: const TextStyle(
                             color: Colors.black,
                             fontSize: 17,

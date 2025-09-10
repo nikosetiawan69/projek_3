@@ -99,7 +99,7 @@ class _VCardState extends State<VCard> {
                       Supabase.instance.client
                           .from('profiles')
                           .stream(primaryKey: ['id'])
-                          .eq('id', user!.id) // user.id dari Supabase auth
+                          .eq('id', widget.course.createdBy) // user.id dari Supabase auth
                           .execute(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {

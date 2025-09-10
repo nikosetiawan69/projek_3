@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_samples/supabase/models/materi_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -19,7 +18,6 @@ class MateriService {
       // Pecah objek menjadi Map (supaya Supabase mengerti)
       ...newMateri.toInsertMap(),
       // Simpan juga siapa yang membuat materi ini (ambil ID user yg login)
-      'created_by': _client.auth.currentUser!.id,
     });
   }
 
@@ -57,6 +55,7 @@ class MateriService {
       imageUrl: imageUrl,
       videoUrl: videoUrl,
       subTitle: subTitle,
+      createdBy: _client.auth.currentUser!.id
     );
 
     // 3. Simpan ke database

@@ -5,6 +5,7 @@ class MateriModel {
   String imageUrl;
   String videoUrl;
   String subTitle;
+  String createdBy;
 
   MateriModel({
     this.id,
@@ -13,6 +14,7 @@ class MateriModel {
     required this.imageUrl,
     required this.videoUrl,
     required this.subTitle,
+    required this.createdBy,
   });
 
   factory MateriModel.fromMap(Map<String, dynamic> map) {
@@ -23,6 +25,7 @@ class MateriModel {
       imageUrl: map['image_url'] as String,
       videoUrl: map['video_url'] as String,
       subTitle: map['subtitle'] as String,
+      createdBy: map['created_by'] ?? '',
     );
   }
 
@@ -34,6 +37,7 @@ class MateriModel {
       'image_url': imageUrl,
       'video_url': videoUrl,
       'subtitle': subTitle,
+      'created_by': createdBy,
     };
   }
 
@@ -44,6 +48,7 @@ class MateriModel {
       'image_url': imageUrl,
       'video_url': videoUrl,
       'subtitle': subTitle,
+      'created_by': createdBy,
     };
   }
 }

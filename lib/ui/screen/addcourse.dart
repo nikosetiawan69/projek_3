@@ -95,7 +95,7 @@ class _AddCoursePageState extends State<AddCoursePage> {
         subTitle: _subtitleController.text.trim(),
       );
       if (!mounted) return;
-      Navigator.of(context).pop(true);
+      Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(

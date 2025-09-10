@@ -92,7 +92,7 @@ class _HCardState extends State<HCard> {
                           Supabase.instance.client
                               .from('profiles')
                               .stream(primaryKey: ['id'])
-                              .eq('id', user!.id) // user.id dari Supabase auth
+                              .eq('id', widget.recent.createdBy) // user.id dari Supabase auth
                               .execute(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==

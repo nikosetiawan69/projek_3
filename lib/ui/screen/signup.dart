@@ -20,8 +20,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final emailRegex = RegExp(r'^[\w\.-]+@([\w-]+\.)+[a-zA-Z]{2,}$');
 
   String? validateEmail(String value) {
-    if (value.isEmpty) return "Wajib diisi";
-    if (!emailRegex.hasMatch(value)) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return "Wajib diisi";
+    if (!emailRegex.hasMatch(trimmed)) {
       return "Gunakan email atau username yang valid";
     }
     return null;
@@ -33,9 +34,9 @@ class _SignUpPageState extends State<SignUpPage> {
     return null;
   }
 
-  String? validateConfirmPassword(String value, String password) {
+  String? validateConfirmPassword(String value) {
     if (value.isEmpty) return "Konfirmasi password wajib diisi";
-    if (value != password) return "Password tidak sama";
+    if (value != _passwordController.text.trim()) return "Password tidak sama";
     return null;
   }
 
@@ -49,6 +50,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final _confirmpasswordController = TextEditingController();
 
   void signUp() async {
+
+    if (!_formKey.currentState!.validate()) return;
+
     final email = _emailController.text;
     final password = _passwordController.text;
     final confirmPassword = _confirmpasswordController.text;
@@ -146,7 +150,8 @@ class _SignUpPageState extends State<SignUpPage> {
                         'Confirm Password',
                         _confirmpasswordController,
                         isPassword: true,
-                        validator: validatePassword,
+                        isConfirm: true,
+                        validator: validateConfirmPassword,
                       ),
                     ],
                   ),
@@ -202,12 +207,17 @@ class _SignUpPageState extends State<SignUpPage> {
     String hint,
     TextEditingController controller, {
     bool isPassword = false,
+    bool isConfirm = false,
     String? Function(String value)? validator,
   }) {
     return TextFormField(
       controller: controller,
-      obscureText: isPassword ? obscurePassword : false,
-      validator: (val) => validator != null ? validator(val ?? '') : null,
+      obscureText: isPassword ? (isConfirm ? confirmobscurePassword : obscurePassword) : false,
+      autofillHints: null,
+      enableSuggestions: false,
+      autocorrect: false,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      validator: (val) => validator?.call(val ?? ''),
       decoration: InputDecoration(
         filled: true,
         fillColor: const Color(0xFFD3D3D3),
@@ -224,17 +234,20 @@ class _SignUpPageState extends State<SignUpPage> {
         suffixIcon:
             isPassword
                 ? GestureDetector(
-                  onTap:
-                      () => setState(() => obscurePassword = !obscurePassword),
-                  child: Icon(
-                    obscurePassword
-                        ? Icons.visibility_outlined
-                        : Icons.visibility_off_outlined,
-                    color: Colors.black,
-                    size: 22,
-                  ),
-                )
-                : null,
+              onTap: () => setState(() {
+                isConfirm
+                    ? confirmobscurePassword = !confirmobscurePassword
+                    : obscurePassword = !obscurePassword;
+              }),
+              child: Icon(
+                (isConfirm ? confirmobscurePassword : obscurePassword)
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+                color: Colors.black,
+                size: 22,
+              ),
+            )
+          : null,
       ),
     );
   }
