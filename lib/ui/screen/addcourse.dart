@@ -95,7 +95,10 @@ class _AddCoursePageState extends State<AddCoursePage> {
         subTitle: _subtitleController.text.trim(),
       );
       if (!mounted) return;
-      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const RiveAppHome()),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
